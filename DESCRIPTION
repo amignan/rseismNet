@@ -1,0 +1,19 @@
+Type: Package
+Package: rseismNet
+Version: 0.1.1
+Title: Earthquake Frequency-Magnitude Distribution & Network Statistics
+Description: A list of statistical functions to describe the earthquake frequency
+    magnitude distribution (FMD). The functions follow the two following rules:
+    (1) the complete FMD side (m>=mc) is governed by beta and depends on the fault
+    network properties; (2) the incomplete FMD part (m<mc) is governed by kappa and
+    depends on the seismic network properties (with m the earthquake magnitude and
+    mc the completeness magnitude). Both beta and kappa are computed using the Aki
+    approach. Any FMD shape is function of the mc spatial distribution, computed
+    using the Bayesian Magnitude of Completeness (BMC) method.
+Author: Arnaud Mignan <arnaudmignan0@gmail.com>
+URL: https://github.com/amignan/rseismNet
+BugReports: https://github.com/amignan/rseismNet/issues
+Encoding: UTF-8
+LazyData: true
+License: MIT
+RoxygenNote: 6.0.1
