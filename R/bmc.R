@@ -6,6 +6,7 @@
 #'  Mignan et al., Bull. Seismol. Soc. Am., 2011).
 #'
 #' @param m Earthquake magnitude vector
+#' @param mbin Magnitude binning number
 #' @param lon Earthquake longitude vector
 #' @param lat Earthquake latitude vector
 #' @return The completeness magnitude mc data frame
