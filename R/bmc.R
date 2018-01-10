@@ -35,7 +35,7 @@ mc.geogr <- function(seism, mbin, method, mapping, dbin = NULL, box = NULL, nmin
                                                    seism$lon < grid$lon[i] + dbin / 2 &
                                                    seism$lat >= grid$lat[i] - dbin / 2 &
                                                    seism$lat < grid$lat[i] + dbin / 2))
-    mc.cell <- sapply(1:grid.n, function(i) if(length(unlist(ind.cell[i])) >= nmin) 
+    mc.cell <- sapply(1:grid.n, function(i) if(length(unlist(ind.cell[i])) >= nmin)
       { mc.val(seism$m[unlist(ind.cell[i])], mbin, method) } else { NA })
     return(data.frame(grid, mc=unlist(mc.cell)))
   }
