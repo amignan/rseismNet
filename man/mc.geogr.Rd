@@ -7,6 +7,8 @@
 mc.geogr(seism, mbin, method, mapping, dbin = NULL, box = NULL, nmin = 4)
 }
 \arguments{
+\item{mbin}{Magnitude binning number}
+
 \item{m}{Earthquake magnitude vector}
 
 \item{lon}{Earthquake longitude vector}
@@ -33,5 +35,6 @@ lon <- as.numeric(substr(seism, start=44, stop=53))
 mag <- round(as.numeric(substr(seism, start=63, stop=67)), digits = log10(1/mbin))
 seism <- data.frame(yr = yr, lon = lon,lat = lat, mag = mag)
 seism <- subset(seism, yr >= 2010)
-map_mc(data.frame(m,lon,lat))
+mc <- mc.geogr(seism, mbin, "mode", "grid", 0.1)
+image(matrix(mc$mc, nrow=length(unique(mc$lon)), ncol=length(unique(mc$lat))))
 }

@@ -2,25 +2,28 @@
 % Please edit documentation in R/fmd.R
 \name{fmd}
 \alias{fmd}
-\title{Compute the earthquake FMD}
+\title{Earthquake FMD Computation}
 \usage{
-fmd(m, mbin)
+fmd(m, mbin = 0.1)
 }
 \arguments{
-\item{m}{Earthquake magnitude vector}
+\item{m}{a numeric vector of earthquake magnitudes}
 
-\item{mbin}{Magnitude binning number}
+\item{mbin}{the magnitude binning value}
 }
 \value{
-The earthquake frequency magnitude distribution (FMD)
+The earthquake FMD data frame made of the 3 columns:
+   \item{mi}{the magnitude bins}
+   \item{ni}{the non-cumulative number of earthquakes of magnitude \code{mi}}
+   \item{Ni}{the cumulative number of earthquakes of magnitude \eqn{\ge} \code{mi}}
 }
 \description{
-Compute the earthquake FMD
+Compute the earthquake frequency magnitude distribution (FMD) for a vector of
+earthquake magnitudes \code{m} with binning \code{mbin}.
 }
 \examples{
-beta <- log(10); mc <- 2; mbin <- 0.1
+beta <- log(10); mc <- 2
 m <- mc - mbin / 2 + rexp(100, beta)
-mdistr <- fmd(m, mbin)
-plot(mdistr$mi, mdistr$Ni, log = "y")
-points(mdistr$mi, mdistr$ni)
+mdistr <- fmd(m)
+View(mdistr)
 }

@@ -4,15 +4,15 @@
 \alias{mc.val}
 \title{Estimate the completeness magnitude}
 \usage{
-mc.val(m, mbin, method)
+mc.val(m, method, mbin = 0.1)
 }
 \arguments{
-\item{m}{Earthquake magnitude vector}
-
-\item{mbin}{Magnitude binning number}
+\item{m}{a numeric vector of earthquake magnitudes}
 
 \item{method}{Method following which the completeness magnitude mc is computed.
 Options include "mode" and "KStest"}
+
+\item{mbin}{Magnitude binning number}
 }
 \value{
 The completeness magnitude mc
@@ -22,6 +22,13 @@ Estimate the completeness magnitude mc from the distribution of the magnitude m
 using two different methods, the mode or a KS test of the Gutenberg-Richter law.
 }
 \examples{
-m <- 
-mc <- mc.val(m, 0.1, "mode")
+theta <- list(kappa = 3 * log(10), beta = log(10), mc = 2)
+m.angular <- efmd.sim(1e3, theta)
+mc.val(m.angular, "mode")          #correctly estimate mc
+mc.val(m.angular, "KStest")        #can significantly over-estimate mc
+
+theta <-
+m.curved <- bfmd(1e3, theta)
+mc.val(m.angular, "mode")          #can significantly under-estimate mc
+mc.val(m.curved, "KStest")         #tendency to over-estimate mc
 }

@@ -7,7 +7,7 @@
 beta.mle(m, mc, mbin)
 }
 \arguments{
-\item{m}{Earthquake magnitude vector}
+\item{m}{a numeric vector of earthquake magnitudes}
 
 \item{mc}{Completeness magnitude number}
 
