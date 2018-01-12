@@ -1,17 +1,21 @@
-#' Earthquake FMD Computation
+#' The Earthquake FMD
 #'
 #' Compute the earthquake frequency magnitude distribution (FMD) for a vector of
-#' earthquake magnitudes \code{m} with binning \code{mbin}.
+#' earthquake magnitudes \emph{m} with binning \emph{\out{m<sub>bin</sub>}}.
+#'
+#' Magnitude intervals have the form
+#' \out{(<i>m<sub>i</sub></i> - <i>m<sub>bin</sub></i>/2, <i>m<sub>i</sub></i> + <i>m<sub>bin</sub></i>/2]},
+#' as defined in function \code{hist} (its default \code{right = TRUE}).
 #'
 #' @param m a numeric vector of earthquake magnitudes
-#' @param mbin the magnitude binning value
+#' @param mbin the magnitude binning value (if not provided, \code{mbin = 0.1})
 #' @return The earthquake FMD data frame made of the 3 columns:
 #'    \item{mi}{the magnitude bins}
 #'    \item{ni}{the non-cumulative number of earthquakes of magnitude \code{mi}}
 #'    \item{Ni}{the cumulative number of earthquakes of magnitude \eqn{\ge} \code{mi}}
 #' @examples
 #' beta <- log(10); mc <- 2
-#' m <- mc - mbin / 2 + rexp(100, beta)
+#' m <- mc - mbin / 2 + rexp(1e3, beta)
 #' mdistr <- fmd(m)
 #' View(mdistr)
 fmd <- function(m, mbin = 0.1) {
@@ -23,69 +27,210 @@ fmd <- function(m, mbin = 0.1) {
   return(data.frame(mi = mi, ni = ni, Ni = Ni))
 }
 
-#' Estimate the completeness magnitude
+#' Completeness Magnitude FMD-based Estimation
 #'
-#' Estimate the completeness magnitude mc from the distribution of the magnitude m
-#' using two different methods, the mode or a KS test of the Gutenberg-Richter law.
+#' Estimate the completeness magnitude \emph{\out{m<sub>c</sub>}} from the
+#' earthquake frequency magnitude distribution (FMD) using different published methods.
+#'
+#' \code{method = "mode"} calculates the mode of the vector of magnitudes
+#' \code{m}. Applies to angular FMDs (Mignan, 2012), otherwise systematically
+#' underestimates \emph{\out{m<sub>c</sub>}}.
+#'
+#' \code{method = "mbass"} ("median-based analysis of the segment slope")
+#' determines the main breakpoints of the earthquake FMD. \emph{\out{m<sub>c</sub>}}
+#' is defined as the change point that corresponds to the smallest probability of
+#' making an error when rejecting the null-hypothesis in a Wilcoxon-Mann-Whitney test
+#' (Amorese, 2007).
+#'
+#' \code{method = "gft"} estimates the goodness-of-fit between the cumulative
+#' number of earthquakes observed and predicted by the Gutenberg-Richter model.
+#' \emph{\out{m<sub>c</sub>}} is defined as the lowest magnitude bin at which a fixed
+#' threshold \emph{R} is first met. \emph{R} is defined as a normalized absolute
+#' difference, fixed to 0.95. If the threshold is not reached, 0.90 is used. If again
+#' the threshold is not reached, the \code{method = "mode"} is used instead
+#' (Wiemer and Wyss, 2000).
+#'
+#' Both \code{"mode"} and \code{"mbass"} methods are non-parametric while \code{"gft"}
+#' depends on the fitting of the Gutenberg-Richter model (see function
+#' \code{beta.mle}). For a general review of FMD-based \emph{\out{m<sub>c</sub>}}
+#' estimation methods, see Mignan and Woessner (2012). For further comparisons of
+#' \code{"mbass"} and \code{"gft"}, see Mignan and Chouliaras (2014).
 #'
 #' @param m a numeric vector of earthquake magnitudes
-#' @param mbin Magnitude binning number
-#' @param method Method following which the completeness magnitude mc is computed.
-#' Options include "mode" and "KStest"
-#' @return The completeness magnitude mc
+#' @param method the method to be used: \code{"mode"}, \code{"mbass"}, or \code{"gft"}
+#' (read Details)
+#' @param mbin the magnitude binning value (if not provided, \code{mbin = 0.1})
+#' @return The numeric value of \emph{\out{m<sub>c</sub>}}
+#' @references Amorese, D. (2007), Applying a Change-Point Detecion Method on
+#' Frequency-Magnitude Distributions, Bull. Seismol. Soc. Am., 97, 1742-1749,
+#' \href{https://pubs.geoscienceworld.org/ssa/bssa/article-abstract/97/5/1742/146470/applying-a-change-point-detection-method-on}{doi: 10.1785/0120060181}
+#' @references Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
+#' distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
+#' \href{http://onlinelibrary.wiley.com/doi/10.1029/2012JB009347/full}{doi: 10.1029/2012JB009347}
+#' @references Mignan, A., Woessner, J. (2012), Estimating the magnitude of completeness
+#' for earthquake catalogs, Community Online Resource for Statistical Seismicity Analysis,
+#' \href{http://www.corssa.org/export/sites/corssa/.galleries/articles-pdf/Mignan-Woessner-2012-CORSSA-Magnitude-of-completeness.pdf}{doi: 10.5078/corssa-00180805}
+#' @references Mignan, A., Chouliaras, G. (2014), Fifty Years of Seismic Network
+#' Performance in Greece (1964-2013): Spatiotemporal Evolution of the Completeness Magnitude,
+#' Seismol. Res. Lett., 85, 657-667
+#' \href{https://pubs.geoscienceworld.org/ssa/srl/article-abstract/85/3/657/315375/fifty-years-of-seismic-network-performance-in}{doi: 10.1785/0220130209}
+#' @references Wiemer, S., Wyss, M. (2000), Minimum Magnitude of Completeness in
+#' Earthquake Catalogs: Examples from Alaska, the Western United States, and Japan,
+#' Bull. Seismol. Soc. Am.,
+#' \href{https://pubs.geoscienceworld.org/ssa/bssa/article-abstract/90/4/859/120531/minimum-magnitude-of-completeness-in-earthquake}{90, 859-869}
+#' @seealso \code{beta.mle}; \code{fmd}
 #' @examples
 #' theta <- list(kappa = 3 * log(10), beta = log(10), mc = 2)
 #' m.angular <- efmd.sim(1e3, theta)
-#' mc.val(m.angular, "mode")          #correctly estimate mc
-#' mc.val(m.angular, "KStest")        #can significantly over-estimate mc
+#' mc.val(m.angular, "mode")
+#' mc.val(m.angular, "mbass")
+#' mc.val(m.angular, "gft")
 #'
-#' theta <-
-#' m.curved <- bfmd(1e3, theta)
-#' mc.val(m.angular, "mode")          #can significantly under-estimate mc
-#' mc.val(m.curved, "KStest")         #tendency to over-estimate mc
+#' mbin <- 0.1
+#' url <- "http://service.scedc.caltech.edu/ftp/catalogs/"
+#' dat <- "hauksson/Socal_DD/hs_1981_2016_comb_K4_A.cat_so_SCSN_v2q"
+#' seism <- scan(paste(url, dat, sep = ""), what = "character", sep = "\n")
+#' m <- round(as.numeric(substr(seism, start=63, stop=67)), digits = log10(1/mbin))
+#' mc.mode <- mc.val(m, "mode")
+#' mc.mbass <- mc.val(m, "mbass")
+#' mc.gft <- mc.val(m, "gft")
+#' mdistr <- fmd(m)
+#' plot(mdistr$mi, mdistr$Ni, log = "y")
+#' points(mdistr$mi, mdistr$ni)
+#' abline(v=c(mc.mode, mc.mbass, mc.gft), lty=c("dotted","solid","dashed"))
 mc.val <- function(m, method, mbin = 0.1) {
   if (method == "mode") {
     dens <- density(m, from = min(m) - 1, to = max(m) + 1)
     return(round(dens$x[which(dens$y == max(dens$y))], digits = log10(1 / mbin))[1])
   }
-  if (method == "KStest") {
+  if (method == "mbass") {
+    mdistr <- fmd(m, mbin)
+
+    N <- length(mdistr$mi) - 1
+    sl <- numeric(N)
+    for(i in 1:N) sl[i] <- (log10(mdistr$ni[i+1]) -
+      log10(mdistr$ni[i])) / (mdistr$mi[i+1] - mdistr$mi[i])
+    mincr_corr <- mdistr$mi[2:length(mdistr$mi)]
+
+    sl[which(is.infinite(sl) == T)] <- NA
+    indnoNA <- which(is.na(sl) == F)
+    N <- length(indnoNA)
+    sl <- sl[indnoNA]; mincr_corr <- mincr_corr[indnoNA]
+
+    niter <- 3
+    j <- 0   #iterations
+    k <- 0   #discontinuities
+    SA <- numeric(N); pva <- numeric(); tau <- numeric()
+    while(j < niter){
+      for(i in 1:N) SA[i] <- abs(2 * sum(rank(sl)[1:i]) - i * (N + 1))
+      indmax <- which.max(SA)[1]
+      xn1 <- sl[1:indmax]
+      xn2 <- sl[-(1:indmax)]
+      if((indmax[1] > 2) && (indmax[1] <= (N-2)) &&
+         (wilcox.test(xn1, xn2, exact = F, correct = T)[3] < 0.05)){
+        k <- k + 1
+        pva[k] <- wilcox.test(xn1, xn2, exact = F, correct = T)[3]
+        tau[k] <- indmax[1]
+        if(k > 1){
+          medsl1 <- median(sl[1:n0])
+          medsl2 <- median(sl[-(1:n0)])
+          for(i in seq(1, n0, 1)) sl[i] <- sl[i] + medsl1
+          for(i in seq(n0 + 1, length(sl), 1)) sl[i] <- sl[i] + medsl2
+        }
+        medsl1 <- median(sl[1:indmax[1]])
+        medsl2 <- median(sl[-(1:indmax[1])])
+        for(i in seq(1, indmax[1], 1)) sl[i] <- sl[i] - medsl1
+        for(i in seq(indmax[1] + 1, length(sl), 1)) sl[i] <- sl[i] - medsl2
+        n0 <- indmax[1]
+      }
+      j <- j + 1
+    }
+    Vpva <- as.vector(pva, mode = "numeric")
+    ip <- order(Vpva)
+    Break1 <- c(signif(mincr_corr[tau[ip[1]]]))
+    Break2 <- c(signif(mincr_corr[tau[ip[2]]]))
+    return(Break1)
+  }
+  if (method == "gft") {
     mdistr <- fmd(m, mbin)
     mmin <- mc.val(m, "mode", mbin)
     mscan <- seq(mmin, max(m) - mbin, mbin)
     nscan <- length(mscan)
-    betai <- sapply(1:nscan, function(i) beta.mle(m[ which(m > mscan[i] - mbin / 2)],
-                                                  mscan[i], mbin))
-    pred <- sapply(1:nscan, function(i) exp(-betai[i]*(mscan[i:nscan]-mscan[i])))
-    obs <- sapply(1:nscan, function(i) mdistr$n[which(mdistr$mi >= mscan[i])])
-    D <- sapply(1:nscan, function(i) max(abs(cumsum(-diff(unlist(pred[i]))) -
-                                             cumsum(-diff(unlist(obs[i]))/
-                                                      max(unlist(obs[i]))) )))
-    return(mscan[which(D == min(D[is.finite(D)]))][1])
+
+    bi <- sapply(1:nscan, function(i) beta.mle(m[which(m > mscan[i] - mbin / 2)],
+                                               mscan[i], mbin)/log(10))
+    ai <- sapply(1:nscan, function(i) log10(length(which(m > mscan[i] - mbin / 2)))+
+                   bi[i]*mscan[i])
+    pred <- sapply(1:nscan, function(i) 10^(ai[i]-bi[i]*mdistr$mi))
+    R <- sapply(1:nscan, function(i) sum(abs(mdistr$N[which(mdistr$mi > mscan[i]-mbin / 2)]-
+                  unlist(pred[,i])[which(mdistr$mi > mscan[i]-mbin / 2)]))/
+                  sum(mdistr$N[which(mdistr$mi > mscan[i]- mbin / 2)]))
+
+    indGFT <- which(R <= 0.05)    #95% confidence
+    if(length(indGFT) != 0) {
+      mc <- mscan[indGFT[1]]
+    } else {
+      indGFT <- which(R <= 0.10)  #90% confidence
+      if(length(indGFT) != 0) {
+        Mc <- mscan[indGFT[1]]
+      } else {
+        Mc <- mmin
+      }
+    }
+    return(mc)
   }
 }
 
-#' Compute the FMD beta-value
+#' Gutenberg-Richter \eqn{\beta}-value Estimation
+#'
+#' Estimates the \eqn{\beta}-value (i.e. slope) of the Gutenberg-Richter model (Gutenberg and Richter, 1944)
+#' by using the maximum likelihood method (Aki, 1965).
+#'
+#' Note that \eqn{\beta} = \emph{b} log(10).
 #'
 #' @param m a numeric vector of earthquake magnitudes
-#' @param mc Completeness magnitude number
-#' @param mbin Magnitude binning number
-#' @return The value of beta for a given m vector
+#' @param mc the completeness magnitude value
+#' @param mbin the magnitude binning value (if not provided, \code{mbin = 0.1})
+#' @return The numeric value of \eqn{\beta}.
+#' @references Aki, K. (1965), Maximum likelihood estimate of b in the formula log N =
+#' a - bM and its confidence limits, Bull. Earthquake Res. Inst. Univ. Tokyo, 43, 237-239
+#' @references Gutenberg, B., Richter, C.F. (1944), Frequency of earthquakes in California,
+#' Bull. Seismol. Soc. Am., 34, 184-188
+#' @seealso \code{mc.val}
 #' @examples
 #' beta <- log(10); mc <- 2; mbin <- 0.1
-#' m <- round(mc - mbin / 2 + rexp(100, beta), digits = log10(1/mbin))
-#' get_beta(m, mc, mbin)
-beta.mle <- function(m, mc, mbin) {
+#' m <- round(mc - mbin / 2 + rexp(1e3, beta), digits = log10(1/mbin))
+#' beta.mle(m, mc, mbin)
+#'
+#' theta <- list(kappa = 3 * log(10), beta = 1.2*log(10), mc = 1.5)
+#' m.angular <- efmd.sim(1e3, theta)
+#' beta.mle(m.angular, theta$mc, mbin)
+beta.mle <- function(m, mc, mbin = 0.1) {
   1 / (mean(m[which(m > mc - mbin / 2)]) - (mc - mbin / 2))
 }
 
-#' Compute the pdf of the elemental FMD
+#' PDF of the Elemental FMD
+#'
+#' Compute the probability density function (PDF) of the elemental
+#' frenquency-magnitude distribution (FMD), as defined by Mignan (2012).
+#'
+#' The elemental FMD has an angular shape in the log-lin space and corresponds to the
+#' case where the completeness magnitude \emph{\out{m<sub>c</sub>}} is constant
+#' (read more in Mignan, 2012; Mignan and Chen, 2016).
 #'
 #' @param m a numeric vector of earthquake magnitudes
-#' @param mc the ompleteness magnitude number
-#' @param mbin Magnitude binning number
-#' @return The value of beta for a given m vector
-#' @examples
-#' ...
+#' @param theta a list of 3 parameters:
+#' * \code{kappa} the detection parameter value
+#' * \code{beta}  the Gutenberg-Richter parameter value
+#' * \code{mc}    the completeness magnitude value
+#' @return A numeric vector of densities.
+#' @references Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
+#' distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
+#' \href{http://onlinelibrary.wiley.com/doi/10.1029/2012JB009347/full}{doi: 10.1029/2012JB009347}
+#' @references Mignan, A., Chen, C.-C. (2016), The Spatial Scale of Detected Seismicity,
+#' Pure Appl. Geophys., 173, 117-124,
+#' \href{https://link.springer.com/article/10.1007/s00024-015-1133-7}{doi: 10.1007/s00024-015-1133-7}
+#' @seealso \code{efmd.sim}
 efmd.pdf <- function(m, theta) {
   indcomplete <- which(m >= theta$mc)
   n.incomplete <- exp((theta$kappa - theta$beta) * (m[-indcomplete] - theta$mc))
@@ -95,27 +240,32 @@ efmd.pdf <- function(m, theta) {
   return(c * f_angular)
 }
 
-#' Elemental FMD Simulation
+#' Simulation of the Elemental FMD
 #'
 #' Simulate the elemental earthquake frequency magnitude distribution (eFMD) by
-#' applying the Inverse Method to the angular FMD model (Mignan, 2012)
-#' with probability density function \code{efmd.pdf}.
+#' applying the Inversion Method (Devroye, 1986) to the angular FMD model of
+#' Mignan (2012).
 #'
-#' If \code{mbin} is not specified it assumes the default value of \code{0.1}.
+#' The elemental FMD has an angular shape in the log-lin space and corresponds to the
+#' case where the completeness magnitude \emph{\out{m<sub>c</sub>}} is constant
+#' (read more in Mignan, 2012; Mignan and Chen, 2016).
 #'
-#' The angular FMD model has density
-#'
-#' @param N number of earthquakes
-#' @param mc Completeness magnitude number
-#' @param mbin Magnitude binning number
+#' @param N the number of earthquakes to simulate
+#' @param theta a list of 3 parameters:
+#' * \code{kappa} the detection parameter value
+#' * \code{beta}  the Gutenberg-Richter parameter value
+#' * \code{mc}    the completeness magnitude value
+#' @param mbin the magnitude binning value (if not provided, \code{mbin = 0.1})
 #' @return A numeric vector of \code{N} earthquake magnitudes.
+#' @references Devroye, L. (1986), Non-Uniform Random Variate Generation,
+#' Springer-Verlag New York Inc., New York, 843 pp.
 #' @references Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
 #' distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
 #' \href{http://onlinelibrary.wiley.com/doi/10.1029/2012JB009347/full}{doi: 10.1029/2012JB009347}
-#' @seealso \code{efmd.pdf} for the probability density function of the eFMD.
+#' @seealso \code{efmd.pdf}
 #' @examples
 #' theta <- list(kappa = 3 * log(10), beta = log(10), mc = 2)
-#' m.sim <- efmd.sim(1e3, theta)
+#' m.sim <- efmd.sim(1e4, theta)
 #' mdistr <- fmd(m.sim)
 #' plot(mdistr$mi, mdistr$Ni, log = "y")
 #' points(mdistr$mi, mdistr$ni)
