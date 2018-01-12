@@ -19,7 +19,11 @@
 #' @references Devroye, L. (1986), Non-Uniform Random Variate Generation,
 #' Springer-Verlag New York Inc., New York, 843 pp.
 #' @references Gutenberg, B., Richter, C.F. (1944), Frequency of earthquakes in California,
-#' Bull. Seismol. Soc. Am., 34, 184-188
+#' Bull. Seismol. Soc. Am.,
+#' \href{https://authors.library.caltech.edu/47734/1/185.full.pdf}{34, 184-188}
+#' @references Lewis, P.A.W., Shedler, G.S. (1979), Simulation of nonhomogeneous poisson
+#' processes by thinning, Naval Res. Logistics, 26, 403-413
+#' \href{http://onlinelibrary.wiley.com/doi/10.1002/nav.3800260304/abstract}{doi: 10.1002/nav.3800260304}
 #' @references Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
 #' distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
 #' \href{http://onlinelibrary.wiley.com/doi/10.1029/2012JB009347/full}{doi: 10.1029/2012JB009347}
