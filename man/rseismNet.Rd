@@ -15,12 +15,30 @@ mc the completeness magnitude). Both beta and kappa are computed using the Aki
 approach. Any FMD shape is function of the mc spatial distribution, computed
 using the Bayesian Magnitude of Completeness (BMC) method.
 }
-\section{rseismNet functions}{
+\section{rseismNet basic functions}{
 
-beta.mle, efmd.pdf, efmd.sim, fmd, mc.val
+beta.mle, bfmd.pdf, bfmd.sim, efmd.pdf, efmd.sim, fmd, mc.val
 }
 
 \references{
+Aki, K. (1965), Maximum likelihood estimate of b in the formula log N =
+a - bM and its confidence limits, Bull. Earthquake Res. Inst. Univ. Tokyo, 43, 237-239
+
+Amorese, D. (2007), Applying a Change-Point Detecion Method on
+Frequency-Magnitude Distributions, Bull. Seismol. Soc. Am., 97, 1742-1749,
+\href{https://pubs.geoscienceworld.org/ssa/bssa/article-abstract/97/5/1742/146470/applying-a-change-point-detection-method-on}{doi: 10.1785/0120060181}
+
+Devroye, L. (1986), Non-Uniform Random Variate Generation,
+Springer-Verlag New York Inc., New York, 843 pp.
+
+Gutenberg, B., Richter, C.F. (1944), Frequency of earthquakes in California,
+Bull. Seismol. Soc. Am.,
+\href{https://authors.library.caltech.edu/47734/1/185.full.pdf}{34, 184-188}
+
+Lewis, P.A.W., Shedler, G.S. (1979), Simulation of nonhomogeneous poisson
+processes by thinning, Naval Res. Logistics, 26, 403-413
+\href{http://onlinelibrary.wiley.com/doi/10.1002/nav.3800260304/abstract}{doi: 10.1002/nav.3800260304}
+
 Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
 distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
 \href{http://onlinelibrary.wiley.com/doi/10.1029/2012JB009347/full}{doi: 10.1029/2012JB009347}
@@ -28,4 +46,18 @@ distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
 Mignan, A., Woessner, J. (2012), Estimating the magnitude of completeness
 for earthquake catalogs, Community Online Resource for Statistical Seismicity Analysis,
 \href{http://www.corssa.org/export/sites/corssa/.galleries/articles-pdf/Mignan-Woessner-2012-CORSSA-Magnitude-of-completeness.pdf}{doi: 10.5078/corssa-00180805}
+
+Mignan, A., Chouliaras, G. (2014), Fifty Years of Seismic Network
+Performance in Greece (1964-2013): Spatiotemporal Evolution of the Completeness Magnitude,
+Seismol. Res. Lett., 85, 657-667
+\href{https://pubs.geoscienceworld.org/ssa/srl/article-abstract/85/3/657/315375/fifty-years-of-seismic-network-performance-in}{doi: 10.1785/0220130209}
+
+Mignan, A., Chen, C.-C. (2016), The Spatial Scale of Detected Seismicity,
+Pure Appl. Geophys., 173, 117-124,
+\href{https://link.springer.com/article/10.1007/s00024-015-1133-7}{doi: 10.1007/s00024-015-1133-7}
+
+Wiemer, S., Wyss, M. (2000), Minimum Magnitude of Completeness in
+Earthquake Catalogs: Examples from Alaska, the Western United States, and Japan,
+Bull. Seismol. Soc. Am.,
+\href{https://pubs.geoscienceworld.org/ssa/bssa/article-abstract/90/4/859/120531/minimum-magnitude-of-completeness-in-earthquake}{90, 859-869}
 }

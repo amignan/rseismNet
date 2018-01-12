@@ -33,7 +33,7 @@ case where the completeness magnitude \emph{\out{m<sub>c</sub>}} is constant
 }
 \examples{
 theta <- list(kappa = 3 * log(10), beta = log(10), mc = 2)
-m.sim <- efmd.sim(1e3, theta)
+m.sim <- efmd.sim(1e4, theta)
 mdistr <- fmd(m.sim)
 plot(mdistr$mi, mdistr$Ni, log = "y")
 points(mdistr$mi, mdistr$ni)
@@ -45,6 +45,10 @@ Springer-Verlag New York Inc., New York, 843 pp.
 Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
 distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
 \href{http://onlinelibrary.wiley.com/doi/10.1029/2012JB009347/full}{doi: 10.1029/2012JB009347}
+
+Mignan, A., Chen, C.-C. (2016), The Spatial Scale of Detected Seismicity,
+Pure Appl. Geophys., 173, 117-124,
+\href{https://link.springer.com/article/10.1007/s00024-015-1133-7}{doi: 10.1007/s00024-015-1133-7}
 }
 \seealso{
 \code{efmd.pdf}

@@ -37,7 +37,8 @@ Aki, K. (1965), Maximum likelihood estimate of b in the formula log N =
 a - bM and its confidence limits, Bull. Earthquake Res. Inst. Univ. Tokyo, 43, 237-239
 
 Gutenberg, B., Richter, C.F. (1944), Frequency of earthquakes in California,
-Bull. Seismol. Soc. Am., 34, 184-188
+Bull. Seismol. Soc. Am.,
+\href{https://authors.library.caltech.edu/47734/1/185.full.pdf}{34, 184-188}
 }
 \seealso{
 \code{mc.val}
