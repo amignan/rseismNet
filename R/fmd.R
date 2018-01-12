@@ -86,6 +86,16 @@ fmd <- function(m, mbin = 0.1) {
 #' mc.val(m.angular, "mbass")
 #' mc.val(m.angular, "gft")
 #'
+#' theta <- list(beta = log(10), mu = 2, sigma = 0.5)
+#' m.curved <- bfmd.sim(1e4, theta)
+#' mc.mode <- mc.val(m.curved, "mode")
+#' mc.mbass <- mc.val(m.curved, "mbass")
+#' mc.gft <- mc.val(m.curved, "gft")
+#' mdistr <- fmd(m.curved)
+#' plot(mdistr$mi, mdistr$Ni, log = "y")
+#' points(mdistr$mi, mdistr$ni)
+#' abline(v=c(mc.mode, mc.mbass, mc.gft), lty=c("dotted","solid","dashed"))
+#'
 #' mbin <- 0.1
 #' url <- "http://service.scedc.caltech.edu/ftp/catalogs/"
 #' dat <- "hauksson/Socal_DD/hs_1981_2016_comb_K4_A.cat_so_SCSN_v2q"
@@ -195,7 +205,8 @@ mc.val <- function(m, method, mbin = 0.1) {
 #' @references Aki, K. (1965), Maximum likelihood estimate of b in the formula log N =
 #' a - bM and its confidence limits, Bull. Earthquake Res. Inst. Univ. Tokyo, 43, 237-239
 #' @references Gutenberg, B., Richter, C.F. (1944), Frequency of earthquakes in California,
-#' Bull. Seismol. Soc. Am., 34, 184-188
+#' Bull. Seismol. Soc. Am.,
+#' \href{https://authors.library.caltech.edu/47734/1/185.full.pdf}{34, 184-188}
 #' @seealso \code{mc.val}
 #' @examples
 #' beta <- log(10); mc <- 2; mbin <- 0.1
@@ -214,9 +225,10 @@ beta.mle <- function(m, mc, mbin = 0.1) {
 #' Compute the probability density function (PDF) of the elemental
 #' frenquency-magnitude distribution (FMD), as defined by Mignan (2012).
 #'
-#' The elemental FMD has an angular shape in the log-lin space and corresponds to the
-#' case where the completeness magnitude \emph{\out{m<sub>c</sub>}} is constant
-#' (read more in Mignan, 2012; Mignan and Chen, 2016).
+#' The angular FMD model is defined as an Asymmetric Laplace distribution. It has an
+#' angular shape in the log-lin space and corresponds to the case where the completeness
+#' magnitude \emph{\out{m<sub>c</sub>}} is constant (read more in Mignan, 2012; Mignan and
+#' Chen, 2016).
 #'
 #' @param m a numeric vector of earthquake magnitudes
 #' @param theta a list of 3 parameters:
@@ -230,14 +242,14 @@ beta.mle <- function(m, mc, mbin = 0.1) {
 #' @references Mignan, A., Chen, C.-C. (2016), The Spatial Scale of Detected Seismicity,
 #' Pure Appl. Geophys., 173, 117-124,
 #' \href{https://link.springer.com/article/10.1007/s00024-015-1133-7}{doi: 10.1007/s00024-015-1133-7}
-#' @seealso \code{efmd.sim}
+#' @seealso \code{beta.mle}; \code{efmd.sim}; \code{mc.val}
 efmd.pdf <- function(m, theta) {
   indcomplete <- which(m >= theta$mc)
   n.incomplete <- exp((theta$kappa - theta$beta) * (m[-indcomplete] - theta$mc))
   n.complete <- exp(-theta$beta * (m[indcomplete] - theta$mc))
-  f_angular <- c(n.incomplete, n.complete)
+  f.angular <- c(n.incomplete, n.complete)
   c <- 1 / (1 / (theta$kappa - theta$beta) + 1 / theta$beta)
-  return(c * f_angular)
+  return(c * f.angular)
 }
 
 #' Simulation of the Elemental FMD
@@ -246,9 +258,10 @@ efmd.pdf <- function(m, theta) {
 #' applying the Inversion Method (Devroye, 1986) to the angular FMD model of
 #' Mignan (2012).
 #'
-#' The elemental FMD has an angular shape in the log-lin space and corresponds to the
-#' case where the completeness magnitude \emph{\out{m<sub>c</sub>}} is constant
-#' (read more in Mignan, 2012; Mignan and Chen, 2016).
+#' The angular FMD model is defined as an Asymmetric Laplace distribution. It has an
+#' angular shape in the log-lin space and corresponds to the case where the completeness
+#' magnitude \emph{\out{m<sub>c</sub>}} is constant (read more in Mignan, 2012; Mignan and
+#' Chen, 2016).
 #'
 #' @param N the number of earthquakes to simulate
 #' @param theta a list of 3 parameters:
@@ -262,7 +275,10 @@ efmd.pdf <- function(m, theta) {
 #' @references Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
 #' distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
 #' \href{http://onlinelibrary.wiley.com/doi/10.1029/2012JB009347/full}{doi: 10.1029/2012JB009347}
-#' @seealso \code{efmd.pdf}
+#' @references Mignan, A., Chen, C.-C. (2016), The Spatial Scale of Detected Seismicity,
+#' Pure Appl. Geophys., 173, 117-124,
+#' \href{https://link.springer.com/article/10.1007/s00024-015-1133-7}{doi: 10.1007/s00024-015-1133-7}
+#' @seealso \code{beta.mle}; \code{efmd.pdf}; \code{mc.val}
 #' @examples
 #' theta <- list(kappa = 3 * log(10), beta = log(10), mc = 2)
 #' m.sim <- efmd.sim(1e4, theta)
@@ -274,5 +290,103 @@ efmd.sim <- function(N, theta, mbin = 0.1) {
   m.complete <- theta$mc - mbin / 2 + rexp(N.complete, theta$beta)
   m.incomplete <- theta$mc - mbin/2 -rexp(N - N.complete, (theta$kappa - theta$beta))
   return(round(c(m.incomplete, m.complete), digits = log10(1 / mbin)))
+}
+
+#' PDF of the Bulk FMD
+#'
+#' Compute the probability density function (PDF) of the bulk
+#' frenquency-magnitude distribution (FMD), as defined by Ogata and Katsura (2006)
+#' (see also Ringdal, 1975; Ogata and Katsura, 1993).
+#'
+#' The bulk FMD model is the product of the Gutenberg-Richter model and a detection function
+#' defined as the cumulative Normal distribution. Its FMD has a curved shape in the log-lin
+#' space and corresponds to the case where the completeness magnitude
+#' \emph{\out{m<sub>c</sub>}} is variable (the FMD curvature representing the
+#' \emph{\out{m<sub>c</sub>}} distribution; read more in Mignan, 2012; Mignan and Chen, 2016).
+#'
+#' @param m a numeric vector of earthquake magnitudes
+#' @param theta a list of 3 parameters:
+#' * \code{beta}  the Gutenberg-Richter parameter value
+#' * \code{mu}    the mean value of the cumulative normal distribution
+#' * \code{sigma} the standard deviation of the cumulative normal distribution
+#' @return A numeric vector of densities.
+#' @references Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
+#' distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
+#' \href{http://onlinelibrary.wiley.com/doi/10.1029/2012JB009347/full}{doi: 10.1029/2012JB009347}
+#' @references Mignan, A., Chen, C.-C. (2016), The Spatial Scale of Detected Seismicity,
+#' Pure Appl. Geophys., 173, 117-124,
+#' \href{https://link.springer.com/article/10.1007/s00024-015-1133-7}{doi: 10.1007/s00024-015-1133-7}
+#' @references Ogata, Y., Katsura, K. (1993), Analysis of temporal and spatial
+#' heterogeneity of magnitude frequency distribution inferred from earthquake
+#' catalogues, Geophys. J. Int.,
+#' \href{http://onlinelibrary.wiley.com/doi/10.1111/j.1365-246X.1993.tb04663.x/abstract}{113, 727-738}
+#' @references Ogata, Y., Katsura, K. (2006), Immediate and updated forecasting of
+#' aftershock hazard, Geophys. Res. Lett., 33, L10305,
+#' \href{http://onlinelibrary.wiley.com/doi/10.1029/2006GL025888/full}{doi: 10.1029/2006GL025888}
+#' @references Ringdal, F. (1975), On the estimation of seismic detection thresholds,
+#' Bull. Seismol. Soc. Am.,
+#' \href{https://pubs.geoscienceworld.org/ssa/bssa/article-abstract/65/6/1631/117495/on-the-estimation-of-seismic-detection-thresholds}{65, 1631-1642}
+#' @seealso \code{beta.mle}; \code{bfmd.sim}
+bfmd.pdf <- function(m, theta) {
+  theta$beta * exp(-theta$beta * (m - theta$mu) -
+    0.5 * theta$beta^2 * theta$sigma^2) * pnorm(m, mean = theta$mu, sd = theta$sigma)
+}
+
+#' Simulation of the Bulk FMD
+#'
+#' Simulate the bulk earthquake frequency magnitude distribution (bFMD) by
+#' applying the Thinning Method (Lewis and Shedler, 1979) to the curved FMD model of Ringdal (1975);
+#' Ogata and Katsura (1993; 2006).
+#'
+#' The bulk FMD model is the product of the Gutenberg-Richter model and a detection function
+#' defined as the cumulative Normal distribution. Its FMD has a curved shape in the log-lin
+#' space and corresponds to the case where the completeness magnitude
+#' \emph{\out{m<sub>c</sub>}} is variable (the FMD curvature representing the
+#' \emph{\out{m<sub>c</sub>}} distribution; read more in Mignan, 2012; Mignan and Chen, 2016).
+#'
+#' @param N the approximate number of earthquakes to simulate
+#' @param theta a list of 3 parameters:
+#' * \code{beta}  the Gutenberg-Richter parameter value
+#' * \code{mu}    the mean value of the cumulative normal distribution
+#' * \code{sigma} the standard deviation of the cumulative normal distribution
+#' @param mbin the magnitude binning value (if not provided, \code{mbin = 0.1})
+#' @param mmin the minimum magnitude value (if not provided, \code{mmin = 0})
+#' @param mmax the maximum magnitude value (if not provided, \code{mmax = 9})
+#' @return A numeric vector of approximatively \code{N} earthquake magnitudes.
+#' @references Lewis, P.A.W., Shedler, G.S. (1979), Simulation of nonhomogeneous poisson
+#' processes by thinning, Naval Res. Logistics, 26, 403-413
+#' \href{http://onlinelibrary.wiley.com/doi/10.1002/nav.3800260304/abstract}{doi: 10.1002/nav.3800260304}
+#' @references Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
+#' distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
+#' \href{http://onlinelibrary.wiley.com/doi/10.1029/2012JB009347/full}{doi: 10.1029/2012JB009347}
+#' @references Mignan, A., Chen, C.-C. (2016), The Spatial Scale of Detected Seismicity,
+#' Pure Appl. Geophys., 173, 117-124,
+#' \href{https://link.springer.com/article/10.1007/s00024-015-1133-7}{doi: 10.1007/s00024-015-1133-7}
+#' @references Ogata, Y., Katsura, K. (1993), Analysis of temporal and spatial
+#' heterogeneity of magnitude frequency distribution inferred from earthquake
+#' catalogues, Geophys. J. Int.,
+#' \href{http://onlinelibrary.wiley.com/doi/10.1111/j.1365-246X.1993.tb04663.x/abstract}{113, 727-738}
+#' @references Ogata, Y., Katsura, K. (2006), Immediate and updated forecasting of
+#' aftershock hazard, Geophys. Res. Lett., 33, L10305,
+#' \href{http://onlinelibrary.wiley.com/doi/10.1029/2006GL025888/full}{doi: 10.1029/2006GL025888}
+#' @references Ringdal, F. (1975), On the estimation of seismic detection thresholds,
+#' Bull. Seismol. Soc. Am.,
+#' \href{https://pubs.geoscienceworld.org/ssa/bssa/article-abstract/65/6/1631/117495/on-the-estimation-of-seismic-detection-thresholds}{65, 1631-1642}
+#' @seealso \code{beta.mle}; \code{bfmd.pdf}
+#' @examples
+#' theta <- list(beta = log(10), mu = 2, sigma = 0.3)
+#' m.sim <- bfmd.sim(1e3, theta)
+#' mdistr <- fmd(m.sim)
+#' plot(mdistr$mi, mdistr$Ni, log = "y")
+#' points(mdistr$mi, mdistr$ni)
+bfmd.sim <- function(N, theta, mbin = 0.1, mmin = 0, mmax = 9) {
+  lambda.max <- max(bfmd.pdf(seq(mmin, mmax, mbin), theta))
+  lambda.sum <- sum(bfmd.pdf(seq(mmin, mmax, mbin), theta))
+  lambda.star <- lambda.sum
+  N.star <- round(N * (mmax - mmin) / mbin)
+  m.star <- round(runif(N.star, min = mmin, max = mmax), digits = log10(1 / mbin))
+  m.curved <- sapply(1:length(m.star), function(i)
+    if(runif(1) <= bfmd.pdf(m.star[i], theta)/lambda.star) m.star[i])
+  return(unlist(m.curved))
 }
 
