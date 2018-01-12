@@ -2,33 +2,93 @@
 % Please edit documentation in R/fmd.R
 \name{mc.val}
 \alias{mc.val}
-\title{Estimate the completeness magnitude}
+\title{Completeness Magnitude FMD-based Estimation}
 \usage{
 mc.val(m, method, mbin = 0.1)
 }
 \arguments{
 \item{m}{a numeric vector of earthquake magnitudes}
 
-\item{method}{Method following which the completeness magnitude mc is computed.
-Options include "mode" and "KStest"}
+\item{method}{the method to be used: \code{"mode"}, \code{"mbass"}, or \code{"gft"}
+(read Details)}
 
-\item{mbin}{Magnitude binning number}
+\item{mbin}{the magnitude binning value (if not provided, \code{mbin = 0.1})}
 }
 \value{
-The completeness magnitude mc
+The numeric value of \emph{\out{m<sub>c</sub>}}
 }
 \description{
-Estimate the completeness magnitude mc from the distribution of the magnitude m
-using two different methods, the mode or a KS test of the Gutenberg-Richter law.
+Estimate the completeness magnitude \emph{\out{m<sub>c</sub>}} from the
+earthquake frequency magnitude distribution (FMD) using different published methods.
+}
+\details{
+\code{method = "mode"} calculates the mode of the vector of magnitudes
+\code{m}. Applies to angular FMDs (Mignan, 2012), otherwise systematically
+underestimates \emph{\out{m<sub>c</sub>}}.
+
+\code{method = "mbass"} ("median-based analysis of the segment slope")
+determines the main breakpoints of the earthquake FMD. \emph{\out{m<sub>c</sub>}}
+is defined as the change point that corresponds to the smallest probability of
+making an error when rejecting the null-hypothesis in a Wilcoxon-Mann-Whitney test
+(Amorese, 2007).
+
+\code{method = "gft"} estimates the goodness-of-fit between the cumulative
+number of earthquakes observed and predicted by the Gutenberg-Richter model.
+\emph{\out{m<sub>c</sub>}} is defined as the lowest magnitude bin at which a fixed
+threshold \emph{R} is first met. \emph{R} is defined as a normalized absolute
+difference, fixed to 0.95. If the threshold is not reached, 0.90 is used. If again
+the threshold is not reached, the \code{method = "mode"} is used instead
+(Wiemer and Wyss, 2000).
+
+Both \code{"mode"} and \code{"mbass"} methods are non-parametric while \code{"gft"}
+depends on the fitting of the Gutenberg-Richter model (see function
+\code{beta.mle}). For a general review of FMD-based \emph{\out{m<sub>c</sub>}}
+estimation methods, see Mignan and Woessner (2012). For further comparisons of
+\code{"mbass"} and \code{"gft"}, see Mignan and Chouliaras (2014).
 }
 \examples{
 theta <- list(kappa = 3 * log(10), beta = log(10), mc = 2)
 m.angular <- efmd.sim(1e3, theta)
-mc.val(m.angular, "mode")          #correctly estimate mc
-mc.val(m.angular, "KStest")        #can significantly over-estimate mc
+mc.val(m.angular, "mode")
+mc.val(m.angular, "mbass")
+mc.val(m.angular, "gft")
 
-theta <-
-m.curved <- bfmd(1e3, theta)
-mc.val(m.angular, "mode")          #can significantly under-estimate mc
-mc.val(m.curved, "KStest")         #tendency to over-estimate mc
+mbin <- 0.1
+url <- "http://service.scedc.caltech.edu/ftp/catalogs/"
+dat <- "hauksson/Socal_DD/hs_1981_2016_comb_K4_A.cat_so_SCSN_v2q"
+seism <- scan(paste(url, dat, sep = ""), what = "character", sep = "\\n")
+m <- round(as.numeric(substr(seism, start=63, stop=67)), digits = log10(1/mbin))
+mc.mode <- mc.val(m, "mode")
+mc.mbass <- mc.val(m, "mbass")
+mc.gft <- mc.val(m, "gft")
+mdistr <- fmd(m)
+plot(mdistr$mi, mdistr$Ni, log = "y")
+points(mdistr$mi, mdistr$ni)
+abline(v=c(mc.mode, mc.mbass, mc.gft), lty=c("dotted","solid","dashed"))
+}
+\references{
+Amorese, D. (2007), Applying a Change-Point Detecion Method on
+Frequency-Magnitude Distributions, Bull. Seismol. Soc. Am., 97, 1742-1749,
+\href{https://pubs.geoscienceworld.org/ssa/bssa/article-abstract/97/5/1742/146470/applying-a-change-point-detection-method-on}{doi: 10.1785/0120060181}
+
+Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
+distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
+\href{http://onlinelibrary.wiley.com/doi/10.1029/2012JB009347/full}{doi: 10.1029/2012JB009347}
+
+Mignan, A., Woessner, J. (2012), Estimating the magnitude of completeness
+for earthquake catalogs, Community Online Resource for Statistical Seismicity Analysis,
+\href{http://www.corssa.org/export/sites/corssa/.galleries/articles-pdf/Mignan-Woessner-2012-CORSSA-Magnitude-of-completeness.pdf}{doi: 10.5078/corssa-00180805}
+
+Mignan, A., Chouliaras, G. (2014), Fifty Years of Seismic Network
+Performance in Greece (1964-2013): Spatiotemporal Evolution of the Completeness Magnitude,
+Seismol. Res. Lett., 85, 657-667
+\href{https://pubs.geoscienceworld.org/ssa/srl/article-abstract/85/3/657/315375/fifty-years-of-seismic-network-performance-in}{doi: 10.1785/0220130209}
+
+Wiemer, S., Wyss, M. (2000), Minimum Magnitude of Completeness in
+Earthquake Catalogs: Examples from Alaska, the Western United States, and Japan,
+Bull. Seismol. Soc. Am.,
+\href{https://pubs.geoscienceworld.org/ssa/bssa/article-abstract/90/4/859/120531/minimum-magnitude-of-completeness-in-earthquake}{90, 859-869}
+}
+\seealso{
+\code{beta.mle}; \code{fmd}
 }

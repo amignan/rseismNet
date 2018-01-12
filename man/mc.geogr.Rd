@@ -21,8 +21,8 @@ The completeness magnitude mc data frame
 \description{
 Map the completeness magnitude mc in space for a seismicity data frame, following
 one of two possible geographical mappings: "grid" (computes mc in cells of size dbin)
- or "bmc" (computes mc according to the Bayesian Magnitude of Completeness method of
- Mignan et al., Bull. Seismol. Soc. Am., 2011).
+or "bmc" (computes mc according to the Bayesian Magnitude of Completeness method of
+Mignan et al., Bull. Seismol. Soc. Am., 2011).
 }
 \examples{
 mbin <- 0.1

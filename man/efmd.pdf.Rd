@@ -2,23 +2,41 @@
 % Please edit documentation in R/fmd.R
 \name{efmd.pdf}
 \alias{efmd.pdf}
-\title{Compute the pdf of the elemental FMD}
+\title{PDF of the Elemental FMD}
 \usage{
 efmd.pdf(m, theta)
 }
 \arguments{
 \item{m}{a numeric vector of earthquake magnitudes}
 
-\item{mc}{the ompleteness magnitude number}
-
-\item{mbin}{Magnitude binning number}
+\item{theta}{a list of 3 parameters:
+\itemize{
+\item \code{kappa} the detection parameter value
+\item \code{beta}  the Gutenberg-Richter parameter value
+\item \code{mc}    the completeness magnitude value
+}}
 }
 \value{
-The value of beta for a given m vector
+A numeric vector of densities.
 }
 \description{
-Compute the pdf of the elemental FMD
+Compute the probability density function (PDF) of the elemental
+frenquency-magnitude distribution (FMD), as defined by Mignan (2012).
 }
-\examples{
-...
+\details{
+The elemental FMD has an angular shape in the log-lin space and corresponds to the
+case where the completeness magnitude \emph{\out{m<sub>c</sub>}} is constant
+(read more in Mignan, 2012; Mignan and Chen, 2016).
+}
+\references{
+Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
+distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
+\href{http://onlinelibrary.wiley.com/doi/10.1029/2012JB009347/full}{doi: 10.1029/2012JB009347}
+
+Mignan, A., Chen, C.-C. (2016), The Spatial Scale of Detected Seismicity,
+Pure Appl. Geophys., 173, 117-124,
+\href{https://link.springer.com/article/10.1007/s00024-015-1133-7}{doi: 10.1007/s00024-015-1133-7}
+}
+\seealso{
+\code{efmd.sim}
 }

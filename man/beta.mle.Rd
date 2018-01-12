@@ -2,25 +2,43 @@
 % Please edit documentation in R/fmd.R
 \name{beta.mle}
 \alias{beta.mle}
-\title{Compute the FMD beta-value}
+\title{Gutenberg-Richter \eqn{\beta}-value Estimation}
 \usage{
-beta.mle(m, mc, mbin)
+beta.mle(m, mc, mbin = 0.1)
 }
 \arguments{
 \item{m}{a numeric vector of earthquake magnitudes}
 
-\item{mc}{Completeness magnitude number}
+\item{mc}{the completeness magnitude value}
 
-\item{mbin}{Magnitude binning number}
+\item{mbin}{the magnitude binning value (if not provided, \code{mbin = 0.1})}
 }
 \value{
-The value of beta for a given m vector
+The numeric value of \eqn{\beta}.
 }
 \description{
-Compute the FMD beta-value
+Estimates the \eqn{\beta}-value (i.e. slope) of the Gutenberg-Richter model (Gutenberg and Richter, 1944)
+by using the maximum likelihood method (Aki, 1965).
+}
+\details{
+Note that \eqn{\beta} = \emph{b} log(10).
 }
 \examples{
 beta <- log(10); mc <- 2; mbin <- 0.1
-m <- round(mc - mbin / 2 + rexp(100, beta), digits = log10(1/mbin))
-get_beta(m, mc, mbin)
+m <- round(mc - mbin / 2 + rexp(1e3, beta), digits = log10(1/mbin))
+beta.mle(m, mc, mbin)
+
+theta <- list(kappa = 3 * log(10), beta = 1.2*log(10), mc = 1.5)
+m.angular <- efmd.sim(1e3, theta)
+beta.mle(m.angular, theta$mc, mbin)
+}
+\references{
+Aki, K. (1965), Maximum likelihood estimate of b in the formula log N =
+a - bM and its confidence limits, Bull. Earthquake Res. Inst. Univ. Tokyo, 43, 237-239
+
+Gutenberg, B., Richter, C.F. (1944), Frequency of earthquakes in California,
+Bull. Seismol. Soc. Am., 34, 184-188
+}
+\seealso{
+\code{mc.val}
 }

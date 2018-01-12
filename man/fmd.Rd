@@ -2,28 +2,33 @@
 % Please edit documentation in R/fmd.R
 \name{fmd}
 \alias{fmd}
-\title{Earthquake FMD Computation}
+\title{The Earthquake FMD}
 \usage{
 fmd(m, mbin = 0.1)
 }
 \arguments{
 \item{m}{a numeric vector of earthquake magnitudes}
 
-\item{mbin}{the magnitude binning value}
+\item{mbin}{the magnitude binning value (if not provided, \code{mbin = 0.1})}
 }
 \value{
 The earthquake FMD data frame made of the 3 columns:
-   \item{mi}{the magnitude bins}
-   \item{ni}{the non-cumulative number of earthquakes of magnitude \code{mi}}
-   \item{Ni}{the cumulative number of earthquakes of magnitude \eqn{\ge} \code{mi}}
+\item{mi}{the magnitude bins}
+\item{ni}{the non-cumulative number of earthquakes of magnitude \code{mi}}
+\item{Ni}{the cumulative number of earthquakes of magnitude \eqn{\ge} \code{mi}}
 }
 \description{
 Compute the earthquake frequency magnitude distribution (FMD) for a vector of
-earthquake magnitudes \code{m} with binning \code{mbin}.
+earthquake magnitudes \emph{m} with binning \emph{\out{m<sub>bin</sub>}}.
+}
+\details{
+Magnitude intervals have the form
+\out{(<i>m<sub>i</sub></i> - <i>m<sub>bin</sub></i>/2, <i>m<sub>i</sub></i> + <i>m<sub>bin</sub></i>/2]},
+as defined in function \code{hist} (its default \code{right = TRUE}).
 }
 \examples{
 beta <- log(10); mc <- 2
-m <- mc - mbin / 2 + rexp(100, beta)
+m <- mc - mbin / 2 + rexp(1e3, beta)
 mdistr <- fmd(m)
 View(mdistr)
 }

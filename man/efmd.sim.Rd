@@ -2,29 +2,34 @@
 % Please edit documentation in R/fmd.R
 \name{efmd.sim}
 \alias{efmd.sim}
-\title{Elemental FMD Simulation}
+\title{Simulation of the Elemental FMD}
 \usage{
 efmd.sim(N, theta, mbin = 0.1)
 }
 \arguments{
-\item{N}{number of earthquakes}
+\item{N}{the number of earthquakes to simulate}
 
-\item{mbin}{Magnitude binning number}
+\item{theta}{a list of 3 parameters:
+\itemize{
+\item \code{kappa} the detection parameter value
+\item \code{beta}  the Gutenberg-Richter parameter value
+\item \code{mc}    the completeness magnitude value
+}}
 
-\item{mc}{Completeness magnitude number}
+\item{mbin}{the magnitude binning value (if not provided, \code{mbin = 0.1})}
 }
 \value{
 A numeric vector of \code{N} earthquake magnitudes.
 }
 \description{
 Simulate the elemental earthquake frequency magnitude distribution (eFMD) by
-applying the Inverse Method to the angular FMD model (Mignan, 2012)
-with probability density function \code{efmd.pdf}.
+applying the Inversion Method (Devroye, 1986) to the angular FMD model of
+Mignan (2012).
 }
 \details{
-If \code{mbin} is not specified it assumes the default value of \code{0.1}.
-
-The angular FMD model has density
+The elemental FMD has an angular shape in the log-lin space and corresponds to the
+case where the completeness magnitude \emph{\out{m<sub>c</sub>}} is constant
+(read more in Mignan, 2012; Mignan and Chen, 2016).
 }
 \examples{
 theta <- list(kappa = 3 * log(10), beta = log(10), mc = 2)
@@ -34,10 +39,13 @@ plot(mdistr$mi, mdistr$Ni, log = "y")
 points(mdistr$mi, mdistr$ni)
 }
 \references{
+Devroye, L. (1986), Non-Uniform Random Variate Generation,
+Springer-Verlag New York Inc., New York, 843 pp.
+
 Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
 distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
 \href{http://onlinelibrary.wiley.com/doi/10.1029/2012JB009347/full}{doi: 10.1029/2012JB009347}
 }
 \seealso{
-\code{efmd.pdf} for the probability density function of the eFMD.
+\code{efmd.pdf}
 }
