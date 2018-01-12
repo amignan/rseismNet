@@ -172,9 +172,9 @@ mc.val <- function(m, method, mbin = 0.1) {
     } else {
       indGFT <- which(R <= 0.10)  #90% confidence
       if(length(indGFT) != 0) {
-        Mc <- mscan[indGFT[1]]
+        mc <- mscan[indGFT[1]]
       } else {
-        Mc <- mmin
+        mc <- mmin
       }
     }
     return(mc)
