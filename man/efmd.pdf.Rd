@@ -24,9 +24,10 @@ Compute the probability density function (PDF) of the elemental
 frenquency-magnitude distribution (FMD), as defined by Mignan (2012).
 }
 \details{
-The elemental FMD has an angular shape in the log-lin space and corresponds to the
-case where the completeness magnitude \emph{\out{m<sub>c</sub>}} is constant
-(read more in Mignan, 2012; Mignan and Chen, 2016).
+The angular FMD model is defined as an Asymmetric Laplace distribution. It has an
+angular shape in the log-lin space and corresponds to the case where the completeness
+magnitude \emph{\out{m<sub>c</sub>}} is constant (read more in Mignan, 2012; Mignan and
+Chen, 2016).
 }
 \references{
 Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
@@ -38,5 +39,5 @@ Pure Appl. Geophys., 173, 117-124,
 \href{https://link.springer.com/article/10.1007/s00024-015-1133-7}{doi: 10.1007/s00024-015-1133-7}
 }
 \seealso{
-\code{efmd.sim}
+\code{beta.mle}; \code{efmd.sim}; \code{mc.val}
 }

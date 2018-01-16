@@ -2,18 +2,26 @@
 % Please edit documentation in R/bmc.R
 \name{mc.geogr}
 \alias{mc.geogr}
-\title{Map the completeness magnitude in space}
+\title{Completeness Magnitude Spatial Mapping}
 \usage{
-mc.geogr(seism, mbin, method, mapping, dbin = NULL, box = NULL, nmin = 4)
+mc.geogr(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL,
+  nmin = 4)
 }
 \arguments{
-\item{mbin}{Magnitude binning number}
+\item{seism}{an earthquake catalogue data frame of parameters:
+\itemize{
+\item \code{lon} the earthquake longitude
+\item \code{lat} the earthquake latitude
+\item \code{m}   the earthquake magnitude
+}}
 
-\item{m}{Earthquake magnitude vector}
+\item{mbin}{the magnitude binning value (if not provided, \code{mbin = 0.1})}
 
-\item{lon}{Earthquake longitude vector}
+\item{box}{a vector of the minimum longitude, maximum longitude, minimum latitude and
+maximum latitude, in this order}
 
-\item{lat}{Earthquake latitude vector}
+\item{dbin}{the spatial binning value (if not provided, \code{dbin} is calculated such that
+the map is made of 5 longitudinal cells based on \code{box})}
 }
 \value{
 The completeness magnitude mc data frame
@@ -33,8 +41,8 @@ yr <- as.numeric(substr(seism, start=1, stop=4))
 lat <- as.numeric(substr(seism, start=35, stop=42))
 lon <- as.numeric(substr(seism, start=44, stop=53))
 mag <- round(as.numeric(substr(seism, start=63, stop=67)), digits = log10(1/mbin))
-seism <- data.frame(yr = yr, lon = lon,lat = lat, mag = mag)
+seism <- data.frame(yr = yr, lon = lon,lat = lat, m = mag)
 seism <- subset(seism, yr >= 2010)
-mc <- mc.geogr(seism, mbin, "mode", "grid", 0.1)
-image(matrix(mc$mc, nrow=length(unique(mc$lon)), ncol=length(unique(mc$lat))))
+mc.obs <- mc.geogr(seism, "mode", "grid", dbin = 0.1)
+image(matrix(mc.obs$mc.obs, nrow=length(unique(mc.obs$lon)), ncol=length(unique(mc.obs$lat))))
 }

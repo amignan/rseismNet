@@ -71,5 +71,5 @@ Bull. Seismol. Soc. Am.,
 \href{https://pubs.geoscienceworld.org/ssa/bssa/article-abstract/65/6/1631/117495/on-the-estimation-of-seismic-detection-thresholds}{65, 1631-1642}
 }
 \seealso{
-\code{bfmd.pdf}
+\code{beta.mle}; \code{bfmd.pdf}
 }

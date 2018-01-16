@@ -53,6 +53,16 @@ mc.val(m.angular, "mode")
 mc.val(m.angular, "mbass")
 mc.val(m.angular, "gft")
 
+theta <- list(beta = log(10), mu = 2, sigma = 0.5)
+m.curved <- bfmd.sim(1e4, theta)
+mc.mode <- mc.val(m.curved, "mode")
+mc.mbass <- mc.val(m.curved, "mbass")
+mc.gft <- mc.val(m.curved, "gft")
+mdistr <- fmd(m.curved)
+plot(mdistr$mi, mdistr$Ni, log = "y")
+points(mdistr$mi, mdistr$ni)
+abline(v=c(mc.mode, mc.mbass, mc.gft), lty=c("dotted","solid","dashed"))
+
 mbin <- 0.1
 url <- "http://service.scedc.caltech.edu/ftp/catalogs/"
 dat <- "hauksson/Socal_DD/hs_1981_2016_comb_K4_A.cat_so_SCSN_v2q"

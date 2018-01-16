@@ -25,12 +25,11 @@ frenquency-magnitude distribution (FMD), as defined by Ogata and Katsura (2006)
 (see also Ringdal, 1975; Ogata and Katsura, 1993).
 }
 \details{
-The bulk FMD has a curved shape in the log-lin space and corresponds to the
-case where the completeness magnitude \emph{\out{m<sub>c</sub>}} is variable
-(read more in Mignan, 2012; Mignan and Chen, 2016). \eqn{\mu} represents the
-magnitude bin at which half of the earthquakes are detected and
-\eqn{\sigma} the scale for a range of magnitudes around \eqn{\mu} where
-earthquakes are more or less frequently detected (Ogata and Katsura, 2006).
+The bulk FMD model is the product of the Gutenberg-Richter model and a detection function
+defined as the cumulative Normal distribution. Its FMD has a curved shape in the log-lin
+space and corresponds to the case where the completeness magnitude
+\emph{\out{m<sub>c</sub>}} is variable (the FMD curvature representing the
+\emph{\out{m<sub>c</sub>}} distribution; read more in Mignan, 2012; Mignan and Chen, 2016).
 }
 \references{
 Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
@@ -55,5 +54,5 @@ Bull. Seismol. Soc. Am.,
 \href{https://pubs.geoscienceworld.org/ssa/bssa/article-abstract/65/6/1631/117495/on-the-estimation-of-seismic-detection-thresholds}{65, 1631-1642}
 }
 \seealso{
-\code{bfmd.sim}
+\code{beta.mle}; \code{bfmd.sim}
 }
