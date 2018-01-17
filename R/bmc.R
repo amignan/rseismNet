@@ -42,12 +42,12 @@
 #' * \code{lon} the seismic station longitude
 #' * \code{lat} the seismic station latitude
 #' * \code{...} other station attributes
-#' @param kth the \code{kth = 3} seismic station used for distance calculation for
-#' \code{"mapping = circle.opt"} (if not provided, \code{kth = 4})
+#' @param kth the \out{<i>k</i><sup>th</sup>} seismic station used for distance calculation
+#' for \code{"mapping = circle.opt"} (if not provided, \code{kth = 4})
 #' @return The data frame of 3 parameters:
 #' * \code{lon} the longitude of the cell center
 #' * \code{lat} the latitude of the cell center
-#' * \code{mc}  the completeness magnitude \emph{\out{m<sub>c</sub>}} in the cell
+#' * \code{mc.obs}  the completeness magnitude \emph{\out{m<sub>c</sub>}} in the cell
 #' @references Mignan, A., Werner, M.J., Wiemer, S., Chen, C.-C., Wu, Y.-M. (2011),
 #' Bayesian Estimation of the Spatially Varying Completeness Magnitude of Earthquake
 #' Catalogs, Bull. Seismol. Soc. Am., 101, 1371-1385,
@@ -69,11 +69,11 @@
 #'
 #' # map mc in a grid
 #' mc.grid <- mc.geogr(seism, "mode", "grid", dbin = 0.1)
-#' image(matrix(mc.grid$mc, nrow=length(unique(mc.grid$lon)), ncol=length(unique(mc.grid$lat))))
+#' image(matrix(mc.grid$mc.obs, nrow=length(unique(mc.grid$lon)), ncol=length(unique(mc.grid$lat))))
 #'
 #' # map mc with cylinder smoothing (this takes a few minutes!)
 #' mc.cst <- mc.geogr(seism, "mbass", "circle.cst", dbin = 0.1)
-#' image(matrix(mc.cst$mc, nrow=length(unique(mc.cst$lon)), ncol=length(unique(mc.cst$lat))))
+#' image(matrix(mc.cst$mc.obs, nrow=length(unique(mc.cst$lon)), ncol=length(unique(mc.cst$lat))))
 #'
 #' # download the Southern California seismic network data
 #' url <- "http://service.scedc.caltech.edu/station/weblist.php"
@@ -91,9 +91,9 @@
 #' # map mc with optimal sample size (this takes a few minutes!)
 #' # (minimizes mc heterogeneities while maximizing sample size)
 #' mc.opt <- mc.geogr(seism, "mode", "circle.opt", dbin = 0.1, stations = stations)
-#' image(matrix(mc.opt$mc, nrow=length(unique(mc.opt$lon)), ncol=length(unique(mc.opt$lat))))
+#' image(matrix(mc.opt$mc.obs, nrow=length(unique(mc.opt$lon)), ncol=length(unique(mc.opt$lat))))
 mc.geogr <- function(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL, nmin = NULL,
-                     R = 30, stations = NULL, kth = 5) {
+                     R = 30, stations = NULL, kth = 4, n.sample = 0) {
   if(is.null(box)) box <- c(floor(min(seism$lon)), ceiling(max(seism$lon)),
                             floor(min(seism$lat)), ceiling(max(seism$lat)))
   if(is.null(dbin)) dbin <- (box[2]-box[1])/10
@@ -133,9 +133,21 @@ mc.geogr <- function(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL
     ind.cell <- sapply(1:grid.n, function(i) which(r_m[,i] * 1e-3 <= R))
   }
 
-  mc.cell <- sapply(1:grid.n, function(i) if(length(unlist(ind.cell[i])) >= nmin)
-  {mc.val(seism$m[unlist(ind.cell[i])], method, mbin)} else {NA})
-  return(data.frame(grid, mc=unlist(mc.cell)))
+  if(n.sample > 0) {
+    mc.unc <- sapply(1:grid.n, function(i) if(length(unlist(ind.cell[i])) >= nmin) {
+      sapply(1:n.sample, function(j) mc.val(
+          sample(seism$m[unlist(ind.cell[i])], replace = T), method, mbin
+        ))
+    } else {NA})
+    mc.cell <- sapply(1:grid.n, function(i) round(mean(mc.unc[[i]], na.rm = T),
+                                                  digits = log10(1 / mbin)))
+    sigma.cell <- sapply(1:grid.n, function(i) sd(mc.unc[[i]], na.rm = T))
+  } else {
+    mc.cell <- sapply(1:grid.n, function(i) if(length(unlist(ind.cell[i])) >= nmin)
+    {mc.val(seism$m[unlist(ind.cell[i])], method, mbin)} else {NA})
+    sigma.cell <- rep(NA, grid.n)
+  }
+  return(data.frame(grid, mc.obs = unlist(mc.cell), sigma.obs = sigma.cell))
 }
 
 #' Default BMC Prior
@@ -311,6 +323,37 @@ bmc.prior <- function(mc.obs, stations, kth = 4, support = "calibrated") {
   return(list(params, data.frame(mc = mc.obs$mc, d.kth = d.kth)))
 }
 
-bmc <- function() {
-  NULL
+#' BMC Method
+#'
+#' Runs all the steps of the Bayesian Magnitude of Completeness (BMC) method (Mignan et al.,
+#' 2011) and produces a geographical map data frame of the completeness magnitude (observed,
+#' predicted, and posterior) and associated uncertainties (observed, predicted, and
+#' posterior).
+#'
+#' It is a wrap-up of other functions. See Examples for a description of the different steps.
+#' The BMC method has been used in
+#'
+bmc <- function(seism, stations, support = "fast", mbin = 0.1, box = NULL, dbin = NULL,
+                nmin = NULL, kth = 4) {
+  if(support == "fast") {
+    cat("Compute observed mc map (optimized)")
+    mc.obs <- mc.geogr(seism, "mode", "circle.opt", mbin = mbin, box = box, dbin = dbin,
+                       nmin = 4, R = NULL, stations = stations, kth = kth)
+
+    cat("Compute predicted mc map (calibrated default prior model)")
+    params <- bmc.prior(mc.obs, stations, kth = kth, support = "calibrated")
+    grid.n <- nrow(mc.obs)
+    pt.grid <- matrix(c(mc.obs$lon, mc.obs$lat), nrow = grid.n, ncol = 2)
+    pt.sta <- matrix(c(stations$lon, stations$lat), nrow = sta.n, ncol = 2)
+    d_m <- sapply(1:grid.n, function(i) geosphere::distHaversine(pt.grid[i, ], pt.sta))
+    d.kth <- sapply(1:grid.n, function(i) sort(d_m[,i])[kth] * 1e-3)  # in km
+    mc.pred <- (params$c1 * d.kth ^ params$c2 + params$c3)
+
+    cat("Compute posterior mc map (combining both observed & predicted mc maps)")
+
+  }
 }
+
+
+
+
