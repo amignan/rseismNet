@@ -1,43 +1,105 @@
-#' Completeness Magnitude Spatial Mapping
+#' Completeness Magnitude Mapping
 #'
-#' Map the completeness magnitude \emph{\out{m<sub>c</sub>}} in space for a seismicity data
-#' frame, following one of two possible geographical mappings: "grid" (computes
-#' \emph{\out{m<sub>c</sub>}} in cells of size dbin) or "bmc" (computes mc according to the
-#' Bayesian Magnitude of Completeness method of Mignan et al., Bull. Seismol. Soc. Am., 2011).
+#' Map the completeness magnitude \emph{\out{m<sub>c</sub>}} for a seismicity data
+#' frame \code{seism}, following one of three possible geographical mappings (see Details).
 #'
-#' Describe gridding...
+#' \code{"mapping = grid"} computes \emph{\out{m<sub>c</sub>}} for earthquakes located in
+#' each cell of bin size \code{dbin}.
+#'
+#' \code{"mapping = circle.cst"} computes \emph{\out{m<sub>c</sub>}} for earthquakes located
+#' in cylinders centered on each cell and with radius \code{R} (see the smoothing impact of
+#' increasing R in Mignan et al., 2011).
+#'
+#' \code{"mapping = circle.opt"} computes \emph{\out{m<sub>c</sub>}} for earthquakes located
+#' in cylinders centered on each cell and with variable radius estimated from the seismic
+#' network spatial density (Mignan et al., 2011). This method aims at minimizing
+#' \emph{\out{m<sub>c</sub>}} spatial heterogeneities by using a small radius in the dense
+#' parts of the network where \emph{\out{m<sub>c</sub>}} changes faster. The method depends
+#' on the generic BMC prior model parameters defined in function \code{bmc.prior.generic}.
 #'
 #' @param seism an earthquake catalog data frame of parameters:
 #' * \code{lon} the earthquake longitude
 #' * \code{lat} the earthquake latitude
 #' * \code{m}   the earthquake magnitude
-#' @param method the method to be used: \code{"mode"}, \code{"mbass"}, or \code{"gft"}
+#' * \code{...} other earthquake parameters
+#' @param method the method to be used to evaluate \emph{\out{m<sub>c</sub>}}: \code{"mode"}, \code{"mbass"}, or \code{"gft"}
 #' (see Details of function \code{mc.val})
-#' @param mapping the mapping to be used: \code{"grid"} (see Details)
+#' @param mapping the mapping to be used: \code{"grid"}, \code{"circle.cst"}, or
+#' \code{"circle.opt"} (see Details)
 #' @param mbin the magnitude binning value (if not provided, \code{mbin = 0.1})
 #' @param box a vector of the minimum longitude, maximum longitude, minimum latitude and
-#' maximum latitude, in this order (if not provided, \code{box} is calculated from \code{seism})
+#' maximum latitude, in this order (if not provided, \code{box} is calculated from
+#' the geographical limits of \code{seism})
 #' @param dbin the spatial binning value (if not provided, \code{dbin} is calculated such that
 #' the map is made of 10 longitudinal cells based on \code{box})
-#' @return The completeness magnitude mc data frame:
+#' @param nmin the minimum number of earthquakes required to evaluate
+#' \emph{\out{m<sub>c</sub>}} (if not provided, \code{nmin = 4} for \code{method = "mode"},
+#' otherwise \code{nmin = 50}; see explanation in Mignan et al., 2011)
+#' @param R the cylinder radius in kilometers for \code{"mapping = circle.cst"} (if not provided,
+#' \code{R = 30})
+#' @param stations the seismic network data frame for \code{"mapping = circle.opt"},
+#' of parameters:
+#' * \code{lon} the seismic station longitude
+#' * \code{lat} the seismic station latitude
+#' * \code{...} other station attributes
+#' @param kth the kth seismic station used for distance calculation for
+#' \code{"mapping = circle.opt"} (if not provided, \code{kth = 4})
+#' @return The data frame of 3 parameters:
 #' * \code{lon} the longitude of the cell center
 #' * \code{lat} the latitude of the cell center
 #' * \code{mc}  the completeness magnitude \emph{\out{m<sub>c</sub>}} in the cell
+#' @references Mignan, A., Werner, M.J., Wiemer, S., Chen, C.-C., Wu, Y.-M. (2011),
+#' Bayesian Estimation of the Spatially Varying Completeness Magnitude of Earthquake
+#' Catalogs, Bull. Seismol. Soc. Am., 101, 1371-1385,
+#' \href{https://pubs.geoscienceworld.org/bssa/article-lookup/101/3/1371}{doi: 10.1785/0120100223}
+#' @seealso \code{bmc.prior.generic}; \code{mc.val}
 #' @examples
+#' # download the Southern California relocated catalogue of Hauksson et al. (2012)
 #' url <- "http://service.scedc.caltech.edu/ftp/catalogs/"
 #' cat <- "hauksson/Socal_DD/hs_1981_2011_06_comb_K2_A.cat_so_SCSN_v01"
 #' dat <- scan(paste(url, cat, sep = ""), what = "character", sep = "\n")
+#' yr <- as.numeric(substr(dat, start=1, stop=4))
 #' lat <- as.numeric(substr(dat, start=35, stop=42))
 #' lon <- as.numeric(substr(dat, start=44, stop=53))
 #' m <- as.numeric(substr(dat, start=63, stop=67))
-#' seism <- data.frame(lon = lon, lat = lat, m = m)
-#' mc.obs <- mc.geogr(seism, "mode", "grid")
-#' image(matrix(mc.obs$mc, nrow=length(unique(mc.obs$lon)), ncol=length(unique(mc.obs$lat))))
-mc.geogr <- function(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL, nmin = 4,
-                     R = NULL, bmc.prior = NULL) {
+#' seism <- data.frame(yr = yr, lon = lon, lat = lat, m = m)
+#'
+#' # reduce catalogue size for faster computation
+#' seism <- subset(seism, yr >= 2008)
+#'
+#' # map mc in a grid
+#' mc.grid <- mc.geogr(seism, "mode", "grid", dbin = 0.1)
+#' image(matrix(mc.grid$mc, nrow=length(unique(mc.grid$lon)), ncol=length(unique(mc.grid$lat))))
+#'
+#' # map mc with cylinder smoothing (this takes a few minutes!)
+#' mc.cst <- mc.geogr(seism, "mbass", "circle.cst", dbin = 0.1)
+#' image(matrix(mc.cst$mc, nrow=length(unique(mc.cst$lon)), ncol=length(unique(mc.cst$lat))))
+#'
+#' # download the Southern California seismic network data
+#' url <- "http://service.scedc.caltech.edu/station/weblist.php"
+#' dat <- scan(url, what = "character", sep = "\n", skip = 7)
+#' network <- substr(dat, start = 1, stop = 2)
+#' sta.name <- substr(dat, start = 5, stop = 9)
+#' sta.lat <- as.numeric(substr(dat, start = 52, stop = 59))
+#' sta.lon <- as.numeric(substr(dat, start = 61, stop = 70))
+#' sta.on <- as.numeric(substr(dat, start = 78, stop = 81))
+#' sta.off <- as.numeric(substr(dat, start = 89, stop = 92))
+#' stations <- data.frame(lon = sta.lon, lat = sta.lat, name = sta.name)
+#' stations <- subset(stations, (network == "CI" & sta.off > min(seism$yr) & sta.on < max(seism$yr)))
+#' stations <- subset(stations, (duplicated(name) == F))
+#'
+#' # map mc with optimal sample size (this takes a few minutes!)
+#' # (minimizes mc heterogeneities while maximizing sample size)
+#' mc.opt <- mc.geogr(seism, "mode", "circle.opt", dbin = 0.1, stations = stations)
+#' image(matrix(mc.opt$mc, nrow=length(unique(mc.opt$lon)), ncol=length(unique(mc.opt$lat))))
+mc.geogr <- function(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL, nmin = NULL,
+                     R = 30, stations = NULL, kth = 5) {
   if(is.null(box)) box <- c(floor(min(seism$lon)), ceiling(max(seism$lon)),
                             floor(min(seism$lat)), ceiling(max(seism$lat)))
   if(is.null(dbin)) dbin <- (box[2]-box[1])/10
+  if(is.null(nmin)) {
+    if(method == "mode") nmin <- 4 else nmin <- 50
+  }
 
   grid <- expand.grid(lon = seq(box[1], box[2], dbin), lat = seq(box[3], box[4], dbin))
   grid.n <- nrow(grid)
@@ -48,10 +110,27 @@ mc.geogr <- function(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL
                                                    seism$lat < grid$lat[i] + dbin / 2))
   }
   if (mapping == "circle.cst") {
-    ind.circle <- sapply(1:grid.n, function(i) NULL)
+    pt.grid <- matrix(c(grid$lon, grid$lat), nrow = grid.n, ncol = 2)
+    pt.seism <- matrix(c(seism$lon, seism$lat), nrow = nrow(seism), ncol = 2)
+    r_m <- sapply(1:grid.n, function(i) geosphere::distHaversine(pt.grid[i, ], pt.seism))
+    ind.cell <- sapply(1:grid.n, function(i) which(r_m[,i] * 1e-3 <= R))
   }
   if (mapping == "circle.opt") {
-    ind.circle <- sapply(1:grid.n, function(i) NULL)
+    sta.n <- nrow(stations)
+    pt.grid <- matrix(c(grid$lon, grid$lat), nrow=grid.n, ncol=2)
+    pt.sta <- matrix(c(stations$lon, stations$lat), nrow=sta.n, ncol=2)
+    pt.seism <- matrix(c(seism$lon, seism$lat), nrow = nrow(seism), ncol = 2)
+    r_m <- sapply(1:grid.n, function(i) geosphere::distHaversine(pt.grid[i, ], pt.seism))
+    d_m <- sapply(1:grid.n, function(i) geosphere::distHaversine(pt.grid[i, ], pt.sta))
+    d.kth <- sapply(1:grid.n, function(i) sort(d_m[,i])[kth] * 1e-3)  # in km
+    params <- bmc.prior.generic(kth)
+    mc.pred <- (params$c1 * d.kth ^ params$c2 + params$c3)
+    dlow <- (((mc.pred - params$sigma) - params$c3) / params$c1) ^ (1 / params$c2)
+    dhigh <- (((mc.pred + params$sigma) - params$c3) / params$c1) ^ (1 / params$c2)
+    R <- (dhigh-dlow)/2
+    Rmin <- sqrt(2) * dbin / 2 * 111
+    R[which(R <= Rmin)] <- Rmin
+    ind.cell <- sapply(1:grid.n, function(i) which(r_m[,i] * 1e-3 <= R))
   }
 
   mc.cell <- sapply(1:grid.n, function(i) if(length(unlist(ind.cell[i])) >= nmin)
@@ -59,6 +138,30 @@ mc.geogr <- function(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL
   return(data.frame(grid, mc=unlist(mc.cell)))
 }
 
+#' Generic BMC Prior
+#'
+#' List the parameters of the generic prior model of the Bayesian Magnitude of
+#' Completeness (BMC) method, as defined in Mignan et al. (2011) for different kth values
+#' (only \code{kth = 3}, \code{4} and \code{5} allowed, otherwise returns \code{NULL}).
+#'
+#' The generic model is defined as the prior model evaluated for the Taiwan earthquake data
+#' (Mignan et al., 2011), as it represents the best constrained data set so far (read more
+#' on this in refs). It oftens provides a better prior once calibrated to other data than a
+#' new fit to the data (see example given for the function \code{bmc.prior}). It is also used
+#' for rapid mapping of the optimal mc map (see function \code{mc.geogr}).
+#'
+#' @param kth the kth seismic station used for distance calculation (if not provided,
+#' \code{kth = 4})
+#' @return the BMC prior parameter list
+#' * \code{c1}, \code{c2}, \code{c3} the empirical parameters
+#' * \code{sigma} the standard error
+#' * \code{kth}   the kth seismic station used for distance calculation
+#' * \code{support}   the information supporting the prior model
+#' @references Mignan, A., Werner, M.J., Wiemer, S., Chen, C.-C., Wu, Y.-M. (2011),
+#' Bayesian Estimation of the Spatially Varying Completeness Magnitude of Earthquake
+#' Catalogs, Bull. Seismol. Soc. Am., 101, 1371-1385,
+#' \href{https://pubs.geoscienceworld.org/bssa/article-lookup/101/3/1371}{doi: 10.1785/0120100223}
+#' @seealso \code{bmc}; \code{bmc.prior}; \code{mc.geogr}
 bmc.prior.generic <- function(kth) {
   params <- NULL
   if(kth == 3) params <- list(c1 = 4.81, c2 = 0.0883, c3 = -4.36,
@@ -73,19 +176,51 @@ bmc.prior.generic <- function(kth) {
 #' BMC Prior
 #'
 #' Define the prior model of the Bayesian Magnitude of Completeness (BMC) method (Mignan et
-#' al., 2011) by fitting a function of the form xx with mc the observed completeness magnitude
-#' in any given cell and d the distance to the nearest kth seismic station
+#' al., 2011) by fitting a function of the form xx with \emph{\out{m<sub>c</sub>}} the observed completeness magnitude
+#' in any given cell and d the distance to the kth nearest seismic station
+#'
+#' \code{support = "calibrated"} uses the generic BMC prior defined by function
+#' \code{bmc.prior.generic} and calibrates it to the \code{mc.obs} data by shifting the
+#' residual average to 0, substracting it from c3 (see e.g., Mignan et al., 2013; Mignan
+#' and Chouliaras, 2014).
+#'
+#' \code{support = "data"} directly fits the prior function to the \code{mc.obs} data
+#' by using the Nonlinear Least Squares \code{stats::nls} function. If the estimation fails,
+#' \code{support = "calibrated"} is automatically used instead.
 #'
 #' @param mc.obs a data frame of the observed mc map, defined by the function \code{mc.geogr}
-#' @param stations the seismic station data frame of parameters:
-#' * \code{lon} the station longitude
-#' * \code{lat} the station latitude
+#' @param stations the seismic network data frame of parameters:
+#' * \code{lon} the seismic station longitude
+#' * \code{lat} the seismic station latitude
+#' * \code{...} other station attributes
 #' @param kth the kth seismic station used for distance calculation (if not provided,
 #' \code{kth = 4})
 #' @param support the information supporting the prior model: \code{"calibrated"} or
-#' \code{"data"} (read Details)
+#' \code{"data"} (if not provided, \code{support = "calibrated"} - read Details)
+#' @return A list of
+#' @return the BMC prior parameter list
+#' * \code{c1}, \code{c2}, \code{c3} the empirical parameters
+#' * \code{sigma} the standard error
+#' * \code{kth}   the kth seismic station used for distance calculation
+#' * \code{support}   the information supporting the prior model
+#' @return the input data frame
+#' * \code{mc}   the completeness magnitude value per cell
+#' * \code{d.kth}   the distance to the kth nearest seismic station per cell
+#' @references Mignan, A., Werner, M.J., Wiemer, S., Chen, C.-C., Wu, Y.-M. (2011),
+#' Bayesian Estimation of the Spatially Varying Completeness Magnitude of Earthquake
+#' Catalogs, Bull. Seismol. Soc. Am., 101, 1371-1385,
+#' \href{https://pubs.geoscienceworld.org/bssa/article-lookup/101/3/1371}{doi: 10.1785/0120100223}
+#' @references Mignan, A., Jiang, C., Zechar, J.D., Wiemer, S., Wu, Z., Huang, Z. (2013),
+#' Completeness of the Mainland China Earthquake Catalog and Implications for the Setup of
+#' the China Earthquake Forecast Texting Center, Bull. Seismol. Soc. Am., 103, 845-859,
+#' \href{https://pubs.geoscienceworld.org/ssa/bssa/article/103/2A/845/331723/completeness-of-the-mainland-china-earthquake}{doi: 10.1785/0120120052}
+#' @references Mignan, A., Chouliaras, G. (2014), Fifty Years of Seismic Network
+#' Performance in Greece (1964-2013): Spatiotemporal Evolution of the Completeness Magnitude,
+#' Seismol. Res. Lett., 85, 657-667
+#' \href{https://pubs.geoscienceworld.org/ssa/srl/article-abstract/85/3/657/315375/fifty-years-of-seismic-network-performance-in}{doi: 10.1785/0220130209}
 #' @seealso \code{bmc}; \code{bmc.prior.generic}; \code{mc.geogr}
 #' @examples
+#' # download the Southern California relocated catalogue of Hauksson et al. (2012)
 #' url <- "http://service.scedc.caltech.edu/ftp/catalogs/"
 #' cat <- "hauksson/Socal_DD/hs_1981_2011_06_comb_K2_A.cat_so_SCSN_v01"
 #' dat <- scan(paste(url, cat, sep = ""), what = "character", sep = "\n")
@@ -96,6 +231,7 @@ bmc.prior.generic <- function(kth) {
 #' seism <- data.frame(yr = yr, lon = lon,lat = lat, m = m)
 #' mc.obs <- mc.geogr(seism, "mode", "grid", dbin = 0.1)
 #'
+#' # download the Southern California seismic network data
 #' url <- "http://service.scedc.caltech.edu/station/weblist.php"
 #' dat <- scan(url, what = "character", sep = "\n", skip = 7)
 #' network <- substr(dat, start = 1, stop = 2)
@@ -104,9 +240,11 @@ bmc.prior.generic <- function(kth) {
 #' sta.lon <- as.numeric(substr(dat, start = 61, stop = 70))
 #' sta.on <- as.numeric(substr(dat, start = 78, stop = 81))
 #' sta.off <- as.numeric(substr(dat, start = 89, stop = 92))
-#' stations <- data.frame(lon = sta.lon, lat = sta.lat)
-#' stations <- subset(stations, (network == "CI" & sta.off > min(yr) & sta.on < max(yr)))
-#' stations <- subset(stations, (duplicated(sta.name) == F))
+#' stations <- data.frame(lon = sta.lon, lat = sta.lat, name = sta.name)
+#' stations <- subset(stations, (network == "CI" & sta.off > min(seism$yr) & sta.on < max(seism$yr)))
+#' stations <- subset(stations, (duplicated(name) == F))
+#'
+#' # test the two possible priors & plot
 #' model.calibrated <- bmc.prior(mc.obs, stations, kth = 5)
 #' model.fromdata <- bmc.prior(mc.obs, stations, kth = 5, support = "data")
 #' data <- model.calibrated[[2]]
@@ -145,7 +283,9 @@ bmc.prior <- function(mc.obs, stations, kth = 4, support = "calibrated") {
     if(is.null(params)) params <- bmc.prior(mc.obs, stations, kth = 4)
   }
 
-  return(list(params, data.frame(mc.obs, d.kth = d.kth)))
+  return(list(params, data.frame(mc = mc.obs$mc, d.kth = d.kth)))
 }
 
-
+bmc <- function() {
+  NULL
+}
