@@ -39,6 +39,11 @@ Lewis, P.A.W., Shedler, G.S. (1979), Simulation of nonhomogeneous poisson
 processes by thinning, Naval Res. Logistics, 26, 403-413
 \href{http://onlinelibrary.wiley.com/doi/10.1002/nav.3800260304/abstract}{doi: 10.1002/nav.3800260304}
 
+Mignan, A., Werner, M.J., Wiemer, S., Chen, C.-C., Wu, Y.-M. (2011),
+Bayesian Estimation of the Spatially Varying Completeness Magnitude of Earthquake
+Catalogs, Bull. Seismol. Soc. Am., 101, 1371-1385,
+\href{https://pubs.geoscienceworld.org/bssa/article-lookup/101/3/1371}{doi: 10.1785/0120100223}
+
 Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
 distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
 \href{http://onlinelibrary.wiley.com/doi/10.1029/2012JB009347/full}{doi: 10.1029/2012JB009347}
@@ -46,6 +51,11 @@ distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
 Mignan, A., Woessner, J. (2012), Estimating the magnitude of completeness
 for earthquake catalogs, Community Online Resource for Statistical Seismicity Analysis,
 \href{http://www.corssa.org/export/sites/corssa/.galleries/articles-pdf/Mignan-Woessner-2012-CORSSA-Magnitude-of-completeness.pdf}{doi: 10.5078/corssa-00180805}
+
+Mignan, A., Jiang, C., Zechar, J.D., Wiemer, S., Wu, Z., Huang, Z. (2013),
+Completeness of the Mainland China Earthquake Catalog and Implications for the Setup of
+the China Earthquake Forecast Texting Center, Bull. Seismol. Soc. Am., 103, 845-859,
+\href{https://pubs.geoscienceworld.org/ssa/bssa/article/103/2A/845/331723/completeness-of-the-mainland-china-earthquake}{doi: 10.1785/0120120052}
 
 Mignan, A., Chouliaras, G. (2014), Fifty Years of Seismic Network
 Performance in Greece (1964-2013): Spatiotemporal Evolution of the Completeness Magnitude,

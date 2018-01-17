@@ -2,47 +2,124 @@
 % Please edit documentation in R/bmc.R
 \name{mc.geogr}
 \alias{mc.geogr}
-\title{Completeness Magnitude Spatial Mapping}
+\title{Completeness Magnitude Mapping}
 \usage{
 mc.geogr(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL,
-  nmin = 4)
+  nmin = NULL, R = 30, stations = NULL, kth = 5)
 }
 \arguments{
-\item{seism}{an earthquake catalogue data frame of parameters:
+\item{seism}{an earthquake catalog data frame of parameters:
 \itemize{
 \item \code{lon} the earthquake longitude
 \item \code{lat} the earthquake latitude
 \item \code{m}   the earthquake magnitude
+\item \code{...} other earthquake parameters
 }}
+
+\item{method}{the method to be used to evaluate \emph{\out{m<sub>c</sub>}}: \code{"mode"}, \code{"mbass"}, or \code{"gft"}
+(see Details of function \code{mc.val})}
+
+\item{mapping}{the mapping to be used: \code{"grid"}, \code{"circle.cst"}, or
+\code{"circle.opt"} (see Details)}
 
 \item{mbin}{the magnitude binning value (if not provided, \code{mbin = 0.1})}
 
 \item{box}{a vector of the minimum longitude, maximum longitude, minimum latitude and
-maximum latitude, in this order}
+maximum latitude, in this order (if not provided, \code{box} is calculated from
+the geographical limits of \code{seism})}
 
 \item{dbin}{the spatial binning value (if not provided, \code{dbin} is calculated such that
-the map is made of 5 longitudinal cells based on \code{box})}
+the map is made of 10 longitudinal cells based on \code{box})}
+
+\item{nmin}{the minimum number of earthquakes required to evaluate
+\emph{\out{m<sub>c</sub>}} (if not provided, \code{nmin = 4} for \code{method = "mode"},
+otherwise \code{nmin = 50}; see explanation in Mignan et al., 2011)}
+
+\item{R}{the cylinder radius in kilometers for \code{"mapping = circle.cst"} (if not provided,
+\code{R = 30})}
+
+\item{stations}{the seismic network data frame for \code{"mapping = circle.opt"},
+of parameters:
+\itemize{
+\item \code{lon} the seismic station longitude
+\item \code{lat} the seismic station latitude
+\item \code{...} other station attributes
+}}
+
+\item{kth}{the kth seismic station used for distance calculation for
+\code{"mapping = circle.opt"} (if not provided, \code{kth = 4})}
 }
 \value{
-The completeness magnitude mc data frame
+The data frame of 3 parameters:
+\itemize{
+\item \code{lon} the longitude of the cell center
+\item \code{lat} the latitude of the cell center
+\item \code{mc}  the completeness magnitude \emph{\out{m<sub>c</sub>}} in the cell
+}
 }
 \description{
-Map the completeness magnitude mc in space for a seismicity data frame, following
-one of two possible geographical mappings: "grid" (computes mc in cells of size dbin)
-or "bmc" (computes mc according to the Bayesian Magnitude of Completeness method of
-Mignan et al., Bull. Seismol. Soc. Am., 2011).
+Map the completeness magnitude \emph{\out{m<sub>c</sub>}} for a seismicity data
+frame \code{seism}, following one of three possible geographical mappings (see Details).
+}
+\details{
+\code{"mapping = grid"} computes \emph{\out{m<sub>c</sub>}} for earthquakes located in
+each cell of bin size \code{dbin}.
+
+\code{"mapping = circle.cst"} computes \emph{\out{m<sub>c</sub>}} for earthquakes located
+in cylinders centered on each cell and with radius \code{R} (see the smoothing impact of
+increasing R in Mignan et al., 2011).
+
+\code{"mapping = circle.opt"} computes \emph{\out{m<sub>c</sub>}} for earthquakes located
+in cylinders centered on each cell and with variable radius estimated from the seismic
+network spatial density (Mignan et al., 2011). This method aims at minimizing
+\emph{\out{m<sub>c</sub>}} spatial heterogeneities by using a small radius in the dense
+parts of the network where \emph{\out{m<sub>c</sub>}} changes faster. The method depends
+on the generic BMC prior model parameters defined in function \code{bmc.prior.generic}.
 }
 \examples{
-mbin <- 0.1
+# download the Southern California relocated catalogue of Hauksson et al. (2012)
 url <- "http://service.scedc.caltech.edu/ftp/catalogs/"
-dat <- "hauksson/Socal_DD/hs_1981_2016_comb_K4_A.cat_so_SCSN_v2q"
-seism <- scan(paste(url, dat, sep = ""), what = "character", sep = "\\n")
-yr <- as.numeric(substr(seism, start=1, stop=4))
-lat <- as.numeric(substr(seism, start=35, stop=42))
-lon <- as.numeric(substr(seism, start=44, stop=53))
-mag <- round(as.numeric(substr(seism, start=63, stop=67)), digits = log10(1/mbin))
-seism <- data.frame(yr = yr, lon = lon,lat = lat, m = mag)
-seism <- subset(seism, yr >= 2010)
-mc.obs <- mc.geogr(seism, "mode", "grid", dbin = 0.1)
-image(matrix(mc.obs$mc.obs, nrow=length(unique(mc.obs$lon)), ncol=length(unique(mc.obs$lat))))
+cat <- "hauksson/Socal_DD/hs_1981_2011_06_comb_K2_A.cat_so_SCSN_v01"
+dat <- scan(paste(url, cat, sep = ""), what = "character", sep = "\\n")
+yr <- as.numeric(substr(dat, start=1, stop=4))
+lat <- as.numeric(substr(dat, start=35, stop=42))
+lon <- as.numeric(substr(dat, start=44, stop=53))
+m <- as.numeric(substr(dat, start=63, stop=67))
+seism <- data.frame(yr = yr, lon = lon, lat = lat, m = m)
+
+# map mc in a grid
+mc.grid <- mc.geogr(seism, "mode", "grid", dbin = 0.1)
+image(matrix(mc.grid$mc, nrow=length(unique(mc.grid$lon)), ncol=length(unique(mc.grid$lat))))
+
+# map mc with cylinder smoothing
+mc.grid <- mc.geogr(seism, "mbass", "circle.cst", dbin = 0.1)
+image(matrix(mc.grid$mc, nrow=length(unique(mc.grid$lon)), ncol=length(unique(mc.grid$lat))))
+# reduce catalogue size for faster computation
+seism <- subset(seism, yr >= 2008)
+
+# download the Southern California seismic network data
+url <- "http://service.scedc.caltech.edu/station/weblist.php"
+dat <- scan(url, what = "character", sep = "\\n", skip = 7)
+network <- substr(dat, start = 1, stop = 2)
+sta.name <- substr(dat, start = 5, stop = 9)
+sta.lat <- as.numeric(substr(dat, start = 52, stop = 59))
+sta.lon <- as.numeric(substr(dat, start = 61, stop = 70))
+sta.on <- as.numeric(substr(dat, start = 78, stop = 81))
+sta.off <- as.numeric(substr(dat, start = 89, stop = 92))
+stations <- data.frame(lon = sta.lon, lat = sta.lat, name = sta.name)
+stations <- subset(stations, (network == "CI" & sta.off > min(seism$yr) & sta.on < max(seism$yr)))
+stations <- subset(stations, (duplicated(name) == F))
+
+# map mc with optimal sample size (minimizes mc heterogeneities while maximizing sample size)
+mc.opt <- mc.geogr(seism, "mode", "circle.opt", dbin = 0.5, stations = stations)
+image(matrix(mc.opt$mc, nrow=length(unique(mc.opt$lon)), ncol=length(unique(mc.opt$lat))))
+}
+\references{
+Mignan, A., Werner, M.J., Wiemer, S., Chen, C.-C., Wu, Y.-M. (2011),
+Bayesian Estimation of the Spatially Varying Completeness Magnitude of Earthquake
+Catalogs, Bull. Seismol. Soc. Am., 101, 1371-1385,
+\href{https://pubs.geoscienceworld.org/bssa/article-lookup/101/3/1371}{doi: 10.1785/0120100223}
+}
+\seealso{
+\code{bmc.prior.generic}; \code{mc.val}
 }
