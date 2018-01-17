@@ -16,7 +16,7 @@ bmc.prior(mc.obs, stations, kth = 4, support = "calibrated")
 \item \code{...} other station attributes
 }}
 
-\item{kth}{the kth seismic station used for distance calculation (if not provided,
+\item{kth}{the \code{kth = 3} seismic station used for distance calculation (if not provided,
 \code{kth = 4})}
 
 \item{support}{the information supporting the prior model: \code{"calibrated"} or
@@ -107,5 +107,5 @@ Seismol. Res. Lett., 85, 657-667
 \href{https://pubs.geoscienceworld.org/ssa/srl/article-abstract/85/3/657/315375/fifty-years-of-seismic-network-performance-in}{doi: 10.1785/0220130209}
 }
 \seealso{
-\code{bmc}; \code{bmc.prior.generic}; \code{mc.geogr}
+\code{bmc}; \code{bmc.prior.default}; \code{mc.geogr}
 }

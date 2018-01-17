@@ -46,7 +46,7 @@ of parameters:
 \item \code{...} other station attributes
 }}
 
-\item{kth}{the kth seismic station used for distance calculation for
+\item{kth}{the \code{kth = 3} seismic station used for distance calculation for
 \code{"mapping = circle.opt"} (if not provided, \code{kth = 4})}
 }
 \value{
@@ -74,7 +74,7 @@ in cylinders centered on each cell and with variable radius estimated from the s
 network spatial density (Mignan et al., 2011). This method aims at minimizing
 \emph{\out{m<sub>c</sub>}} spatial heterogeneities by using a small radius in the dense
 parts of the network where \emph{\out{m<sub>c</sub>}} changes faster. The method depends
-on the generic BMC prior model parameters defined in function \code{bmc.prior.generic}.
+on the default BMC prior model parameters defined in function \code{bmc.prior.default}.
 }
 \examples{
 # download the Southern California relocated catalogue of Hauksson et al. (2012)
@@ -87,15 +87,16 @@ lon <- as.numeric(substr(dat, start=44, stop=53))
 m <- as.numeric(substr(dat, start=63, stop=67))
 seism <- data.frame(yr = yr, lon = lon, lat = lat, m = m)
 
+# reduce catalogue size for faster computation
+seism <- subset(seism, yr >= 2008)
+
 # map mc in a grid
 mc.grid <- mc.geogr(seism, "mode", "grid", dbin = 0.1)
 image(matrix(mc.grid$mc, nrow=length(unique(mc.grid$lon)), ncol=length(unique(mc.grid$lat))))
 
-# map mc with cylinder smoothing
-mc.grid <- mc.geogr(seism, "mbass", "circle.cst", dbin = 0.1)
-image(matrix(mc.grid$mc, nrow=length(unique(mc.grid$lon)), ncol=length(unique(mc.grid$lat))))
-# reduce catalogue size for faster computation
-seism <- subset(seism, yr >= 2008)
+# map mc with cylinder smoothing (this takes a few minutes!)
+mc.cst <- mc.geogr(seism, "mbass", "circle.cst", dbin = 0.1)
+image(matrix(mc.cst$mc, nrow=length(unique(mc.cst$lon)), ncol=length(unique(mc.cst$lat))))
 
 # download the Southern California seismic network data
 url <- "http://service.scedc.caltech.edu/station/weblist.php"
@@ -110,8 +111,9 @@ stations <- data.frame(lon = sta.lon, lat = sta.lat, name = sta.name)
 stations <- subset(stations, (network == "CI" & sta.off > min(seism$yr) & sta.on < max(seism$yr)))
 stations <- subset(stations, (duplicated(name) == F))
 
-# map mc with optimal sample size (minimizes mc heterogeneities while maximizing sample size)
-mc.opt <- mc.geogr(seism, "mode", "circle.opt", dbin = 0.5, stations = stations)
+# map mc with optimal sample size (this takes a few minutes!)
+# (minimizes mc heterogeneities while maximizing sample size)
+mc.opt <- mc.geogr(seism, "mode", "circle.opt", dbin = 0.1, stations = stations)
 image(matrix(mc.opt$mc, nrow=length(unique(mc.opt$lon)), ncol=length(unique(mc.opt$lat))))
 }
 \references{
@@ -121,5 +123,5 @@ Catalogs, Bull. Seismol. Soc. Am., 101, 1371-1385,
 \href{https://pubs.geoscienceworld.org/bssa/article-lookup/101/3/1371}{doi: 10.1785/0120100223}
 }
 \seealso{
-\code{bmc.prior.generic}; \code{mc.val}
+\code{bmc.prior.default}; \code{mc.val}
 }
