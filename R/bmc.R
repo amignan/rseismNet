@@ -15,7 +15,7 @@
 #' network spatial density (Mignan et al., 2011). This method aims at minimizing
 #' \emph{\out{m<sub>c</sub>}} spatial heterogeneities by using a small radius in the dense
 #' parts of the network where \emph{\out{m<sub>c</sub>}} changes faster. The method depends
-#' on the generic BMC prior model parameters defined in function \code{bmc.prior.generic}.
+#' on the default BMC prior model parameters defined in function \code{bmc.prior.default}.
 #'
 #' @param seism an earthquake catalog data frame of parameters:
 #' * \code{lon} the earthquake longitude
@@ -42,7 +42,7 @@
 #' * \code{lon} the seismic station longitude
 #' * \code{lat} the seismic station latitude
 #' * \code{...} other station attributes
-#' @param kth the kth seismic station used for distance calculation for
+#' @param kth the \code{kth = 3} seismic station used for distance calculation for
 #' \code{"mapping = circle.opt"} (if not provided, \code{kth = 4})
 #' @return The data frame of 3 parameters:
 #' * \code{lon} the longitude of the cell center
@@ -52,7 +52,7 @@
 #' Bayesian Estimation of the Spatially Varying Completeness Magnitude of Earthquake
 #' Catalogs, Bull. Seismol. Soc. Am., 101, 1371-1385,
 #' \href{https://pubs.geoscienceworld.org/bssa/article-lookup/101/3/1371}{doi: 10.1785/0120100223}
-#' @seealso \code{bmc.prior.generic}; \code{mc.val}
+#' @seealso \code{bmc.prior.default}; \code{mc.val}
 #' @examples
 #' # download the Southern California relocated catalogue of Hauksson et al. (2012)
 #' url <- "http://service.scedc.caltech.edu/ftp/catalogs/"
@@ -117,13 +117,13 @@ mc.geogr <- function(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL
   }
   if (mapping == "circle.opt") {
     sta.n <- nrow(stations)
-    pt.grid <- matrix(c(grid$lon, grid$lat), nrow=grid.n, ncol=2)
-    pt.sta <- matrix(c(stations$lon, stations$lat), nrow=sta.n, ncol=2)
+    pt.grid <- matrix(c(grid$lon, grid$lat), nrow = grid.n, ncol = 2)
+    pt.sta <- matrix(c(stations$lon, stations$lat), nrow = sta.n, ncol = 2)
     pt.seism <- matrix(c(seism$lon, seism$lat), nrow = nrow(seism), ncol = 2)
     r_m <- sapply(1:grid.n, function(i) geosphere::distHaversine(pt.grid[i, ], pt.seism))
     d_m <- sapply(1:grid.n, function(i) geosphere::distHaversine(pt.grid[i, ], pt.sta))
     d.kth <- sapply(1:grid.n, function(i) sort(d_m[,i])[kth] * 1e-3)  # in km
-    params <- bmc.prior.generic(kth)
+    params <- bmc.prior.default(kth)
     mc.pred <- (params$c1 * d.kth ^ params$c2 + params$c3)
     dlow <- (((mc.pred - params$sigma) - params$c3) / params$c1) ^ (1 / params$c2)
     dhigh <- (((mc.pred + params$sigma) - params$c3) / params$c1) ^ (1 / params$c2)
@@ -138,38 +138,63 @@ mc.geogr <- function(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL
   return(data.frame(grid, mc=unlist(mc.cell)))
 }
 
-#' Generic BMC Prior
+#' Default BMC Prior
 #'
-#' List the parameters of the generic prior model of the Bayesian Magnitude of
-#' Completeness (BMC) method, as defined in Mignan et al. (2011) for different kth values
-#' (only \code{kth = 3}, \code{4} and \code{5} allowed, otherwise returns \code{NULL}).
+#' List the parameters of the default prior model of the Bayesian Magnitude of
+#' Completeness (BMC) method, as defined in Mignan et al. (2011) for different
+#' \out{<i>k</i><sup>th</sup>} values (only \code{kth = 3}, \code{4} and \code{5}
+#' allowed, otherwise returns \code{NULL}).
 #'
 #' The generic model is defined as the prior model evaluated for the Taiwan earthquake data
 #' (Mignan et al., 2011), as it represents the best constrained data set so far (read more
-#' on this in refs). It oftens provides a better prior once calibrated to other data than a
-#' new fit to the data (see example given for the function \code{bmc.prior}). It is also used
-#' for rapid mapping of the optimal mc map (see function \code{mc.geogr}).
+#' on this in Mignan and Chouliaras, 2014). It often provides a better prior once calibrated
+#' to other data than a new fit to the data (see example given for the function
+#' \code{bmc.prior}). It is also used for rapid mapping of the optimal
+#' \emph{\out{m<sub>c</sub>}} map (see function \code{mc.geogr}).
 #'
-#' @param kth the kth seismic station used for distance calculation (if not provided,
+#' @param kth the \out{<i>k</i><sup>th</sup>} seismic station used for distance calculation (if not provided,
 #' \code{kth = 4})
 #' @return the BMC prior parameter list
 #' * \code{c1}, \code{c2}, \code{c3} the empirical parameters
 #' * \code{sigma} the standard error
 #' * \code{kth}   the kth seismic station used for distance calculation
-#' * \code{support}   the information supporting the prior model
+#' * \code{support}   the information supporting the prior model (here
+#' \code{support = "default"})
 #' @references Mignan, A., Werner, M.J., Wiemer, S., Chen, C.-C., Wu, Y.-M. (2011),
 #' Bayesian Estimation of the Spatially Varying Completeness Magnitude of Earthquake
 #' Catalogs, Bull. Seismol. Soc. Am., 101, 1371-1385,
 #' \href{https://pubs.geoscienceworld.org/bssa/article-lookup/101/3/1371}{doi: 10.1785/0120100223}
+#' @references Mignan, A., Chouliaras, G. (2014), Fifty Years of Seismic Network
+#' Performance in Greece (1964-2013): Spatiotemporal Evolution of the Completeness Magnitude,
+#' Seismol. Res. Lett., 85, 657-667
+#' \href{https://pubs.geoscienceworld.org/ssa/srl/article-abstract/85/3/657/315375/fifty-years-of-seismic-network-performance-in}{doi: 10.1785/0220130209}
 #' @seealso \code{bmc}; \code{bmc.prior}; \code{mc.geogr}
-bmc.prior.generic <- function(kth) {
+#' @examples
+#' # map the predicted mc for a set of simulated stations
+#' box <- c(-5, 5, -5, 5); dbin <- 0.1  #degrees
+#' sta.n <- 30
+#' stations <- data.frame(lon = rnorm(sta.n), lat=rnorm(sta.n))
+#' grid <- expand.grid(lon = seq(box[1], box[2], dbin), lat = seq(box[3], box[4], dbin))
+#' grid.n <- nrow(grid)
+#'
+#' kth <- 4
+#' params <- bmc.prior.default(kth)
+#' pt.grid <- matrix(c(grid$lon, grid$lat), nrow = grid.n, ncol = 2)
+#' pt.sta <- matrix(c(stations$lon, stations$lat), nrow = sta.n, ncol = 2)
+#' d_m <- sapply(1:grid.n, function(i) geosphere::distHaversine(pt.grid[i, ], pt.sta))
+#' d.kth <- sapply(1:grid.n, function(i) sort(d_m[,i])[kth] * 1e-3)  # in km
+#' mc.pred <- (params$c1 * d.kth ^ params$c2 + params$c3)
+#' image(unique(grid$lon), unique(grid$lat),
+#'   matrix(mc.pred, nrow=length(unique(grid$lon)), ncol=length(unique(grid$lat))))
+#' points(stations, pch = 2)
+bmc.prior.default <- function(kth) {
   params <- NULL
   if(kth == 3) params <- list(c1 = 4.81, c2 = 0.0883, c3 = -4.36,
-                              sigma = 0.19, kth = 3, support = "generic")
+                              sigma = 0.19, kth = 3, support = "default")
   if(kth == 4) params <- list(c1 = 5.96, c2 = 0.0803, c3 = -5.80,
-                              sigma = 0.18, kth = 4, support = "generic")
+                              sigma = 0.18, kth = 4, support = "default")
   if(kth == 5) params <- list(c1 = 9.42, c2 = 0.0598, c3 = -9.60,
-                              sigma = 0.18, kth = 5, support = "generic")
+                              sigma = 0.18, kth = 5, support = "default")
   return(params)
 }
 
@@ -193,7 +218,7 @@ bmc.prior.generic <- function(kth) {
 #' * \code{lon} the seismic station longitude
 #' * \code{lat} the seismic station latitude
 #' * \code{...} other station attributes
-#' @param kth the kth seismic station used for distance calculation (if not provided,
+#' @param kth the \code{kth = 3} seismic station used for distance calculation (if not provided,
 #' \code{kth = 4})
 #' @param support the information supporting the prior model: \code{"calibrated"} or
 #' \code{"data"} (if not provided, \code{support = "calibrated"} - read Details)
@@ -218,7 +243,7 @@ bmc.prior.generic <- function(kth) {
 #' Performance in Greece (1964-2013): Spatiotemporal Evolution of the Completeness Magnitude,
 #' Seismol. Res. Lett., 85, 657-667
 #' \href{https://pubs.geoscienceworld.org/ssa/srl/article-abstract/85/3/657/315375/fifty-years-of-seismic-network-performance-in}{doi: 10.1785/0220130209}
-#' @seealso \code{bmc}; \code{bmc.prior.generic}; \code{mc.geogr}
+#' @seealso \code{bmc}; \code{bmc.prior.default}; \code{mc.geogr}
 #' @examples
 #' # download the Southern California relocated catalogue of Hauksson et al. (2012)
 #' url <- "http://service.scedc.caltech.edu/ftp/catalogs/"
@@ -265,7 +290,7 @@ bmc.prior <- function(mc.obs, stations, kth = 4, support = "calibrated") {
   dat2fit <- data.frame(d = d.kth, mc = mc.obs$mc)
 
   if(support == "calibrated") {
-    params <- bmc.prior.generic(kth)
+    params <- bmc.prior.default(kth)
     residual <- dat2fit$mc - (params$c1 * dat2fit$d ^ params$c2 + params$c3)
     params$c3 <- params$c3 + mean(residual, na.rm = T)
     residual.calib <- dat2fit$mc - params$c1 * dat2fit$d ^ params$c2 + params$c3
@@ -280,7 +305,7 @@ bmc.prior <- function(mc.obs, stations, kth = 4, support = "calibrated") {
       params <- list(c1 = c1, c2 = c2, c3 = c3, sigma = sigma, kth = kth, support = "data")
     }, error = function(e) cat("ERROR :",conditionMessage(e),
                                "-> Calibration used instead", "\n"))
-    if(is.null(params)) params <- bmc.prior(mc.obs, stations, kth = 4)
+    if(is.null(params)) params <- bmc.prior(mc.obs, stations, kth = 4, support = "calibrated")
   }
 
   return(list(params, data.frame(mc = mc.obs$mc, d.kth = d.kth)))
