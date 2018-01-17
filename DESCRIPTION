@@ -10,10 +10,12 @@ Description: A list of statistical functions to describe the earthquake frequenc
     mc the completeness magnitude). Both beta and kappa are computed using the Aki
     approach. Any FMD shape is function of the mc spatial distribution, computed
     using the Bayesian Magnitude of Completeness (BMC) method.
-Author: Arnaud Mignan <arnaudmignan0@gmail.com>
+Authors@R: person("Arnaud", "Mignan", email = "arnaudmignan0@gmail.com", role = c("aut", "cre"))
 URL: https://github.com/amignan/rseismNet
 BugReports: https://github.com/amignan/rseismNet/issues
 Encoding: UTF-8
+Imports:
+    geosphere
 LazyData: yes
 License: MIT
 Roxygen: list(markdown = TRUE)
