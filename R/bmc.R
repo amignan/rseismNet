@@ -434,27 +434,122 @@ bmc.bayes <- function(mc.obs, mc.pred, sigma.pred) {
 
 #' BMC Wrapper
 #'
-#' Runs all the steps of the Bayesian Magnitude of Completeness (BMC) method (Mignan et al.,
-#' 2011) and produces a geographical map data frame of the completeness magnitude (observed,
+#' Run all the steps of the Bayesian Magnitude of Completeness (BMC) method (Mignan et al.,
+#' 2011) and produce a spatial data frame of the completeness magnitude (observed,
 #' predicted, and posterior) and associated uncertainties (observed, predicted, and
 #' posterior).
 #'
-#' It is a wrap-up of other functions. See Examples for a description of the different steps.
-#' The BMC method has been used in
+#' It is a wrap-up of other functions. See Examples of the function \code{bmc.bayes} for
+#' a possible break-down of the different steps of the BMC method.
 #'
-bmc <- function(seism, stations, support = "fast", mbin = 0.1, box = NULL, dbin = NULL,
-                nmin = NULL, kth = 4) {
+#' The \code{support = "fast"} approach is the only one provided for the BMC wrapper so far.
+#' It consists in estimating the optimal observed completeness magnitude \out{m<sub>c</sub>}
+#' by directly using the default BMC prior model. The model is then calibrated to the
+#' optimal observed \out{m<sub>c</sub>}. Finally, the Bayesian method is applied. This fast
+#' approach was successfully tested in a number of regions (e.g., Kraft et al., 2013;
+#' Mignan et al., 2013; Mignan and Chouliaras, 2014; Tormann et al., 2014; Panzera et al., 2017).
+#'
+#' @param seism an earthquake catalog data frame of parameters:
+#' * \code{lon} the earthquake longitude
+#' * \code{lat} the earthquake latitude
+#' * \code{m}   the earthquake magnitude
+#' * \code{...} other earthquake parameters
+#' @param stations the seismic network data frame of parameters:
+#' * \code{lon} the seismic station longitude
+#' * \code{lat} the seismic station latitude
+#' * \code{...} other station attributes
+#' @param support the information supporting the BMC method: only  \code{"fast"} available
+#' so far)
+#' @param mbin the magnitude binning value (if not provided, \code{mbin = 0.1})
+#' @param box a vector of the minimum longitude, maximum longitude, minimum latitude and
+#' maximum latitude, in this order (if not provided, \code{box} is calculated from
+#' the geographical limits of \code{seism})
+#' @param dbin the spatial binning value (if not provided, \code{dbin} is calculated such that
+#' the map is made of 10 longitudinal cells based on \code{box})
+#' @param kth the \out{k<sup>th</sup>} nearest seismic station used for distance calculation
+#' (if not provided, \code{kth = 4})
+#' @return The data frame of 8 parameters:
+#' * \code{lon} the longitude of the cell center
+#' * \code{lat} the latitude of the cell center
+#' * \code{mc.obs}  the observed \out{m<sub>c</sub>} in the cell
+#' * \code{sigma.obs}  the observed standard error in the cell
+#' * \code{mc.pred}  the predicted \out{m<sub>c</sub>} in the cell
+#' * \code{sigma.pred}  the prior model standard deviation in the cell
+#' * \code{mc.post}  the posterior \out{m<sub>c</sub>} in the cell
+#' * \code{sigma.post}  the posterior standard error in the cell
+#' @references Kraft, T., Mignan, A., Giardini, D. (2013), Optimization of a large-scale
+#' microseismic monitoring network in northern Switzerland, Geophys. J. Int., 195, 474-490,
+#' \href{https://academic.oup.com/gji/article/195/1/474/601101}{doi: 10.1093/gji/ggt225}
+#' @references Mignan, A., Werner, M.J., Wiemer, S., Chen, C.-C., Wu, Y.-M. (2011),
+#' Bayesian Estimation of the Spatially Varying Completeness Magnitude of Earthquake
+#' Catalogs, Bull. Seismol. Soc. Am., 101, 1371-1385,
+#' \href{https://pubs.geoscienceworld.org/bssa/article-lookup/101/3/1371}{doi: 10.1785/0120100223}
+#' @references Mignan, A., Jiang, C., Zechar, J.D., Wiemer, S., Wu, Z., Huang, Z. (2013),
+#' Completeness of the Mainland China Earthquake Catalog and Implications for the Setup of
+#' the China Earthquake Forecast Texting Center, Bull. Seismol. Soc. Am., 103, 845-859,
+#' \href{https://pubs.geoscienceworld.org/ssa/bssa/article/103/2A/845/331723/completeness-of-the-mainland-china-earthquake}{doi: 10.1785/0120120052}
+#' @references Mignan, A., Chouliaras, G. (2014), Fifty Years of Seismic Network
+#' Performance in Greece (1964-2013): Spatiotemporal Evolution of the Completeness Magnitude,
+#' Seismol. Res. Lett., 85, 657-667
+#' \href{https://pubs.geoscienceworld.org/ssa/srl/article-abstract/85/3/657/315375/fifty-years-of-seismic-network-performance-in}{doi: 10.1785/0220130209}
+#' @references Panzera, F., Mignan, A., Vogfjord, K.S. (2017), Spatiotemporal evolution of
+#' the completeness magnitude of the Icelandic earthquake catalogue from 1991 to 2013, J.
+#' Seismol., 21, 615-630,
+#' \href{https://link.springer.com/article/10.1007/s10950-016-9623-3}{doi: 10.1007/s10950-016-9623-3}
+#' @references Tormann, T., Wiemer, S., Mignan, A. (2014), Systematic survey of
+#' high-resolution b value imaging along Californian faults: inference on asperities, J.
+#' Geophys. Res. Solid Earth, 119, 2029-2054,
+#' \href{http://onlinelibrary.wiley.com/doi/10.1002/2013JB010867/full}{doi: 10.1002/2013JB010867}
+#' @seealso \code{bmc.bayes}; \code{bmc.prior}; \code{bmc.prior.default}; \code{mc.geogr}
+#' @examples
+#' # download the Southern California relocated catalogue of Hauksson et al. (2012)
+#' url <- "http://service.scedc.caltech.edu/ftp/catalogs/"
+#' cat <- "hauksson/Socal_DD/hs_1981_2011_06_comb_K2_A.cat_so_SCSN_v01"
+#' dat <- scan(paste(url, cat, sep = ""), what = "character", sep = "\n")
+#' yr <- as.numeric(substr(dat, start=1, stop=4))
+#' lat <- as.numeric(substr(dat, start=35, stop=42))
+#' lon <- as.numeric(substr(dat, start=44, stop=53))
+#' m <- as.numeric(substr(dat, start=63, stop=67))
+#' seism <- data.frame(yr = yr, lon = lon,lat = lat, m = m)
+#'
+#' # reduce catalogue size for faster computation
+#' seism <- subset(seism, yr >= 2008)
+#'
+#' # download the Southern California seismic network data
+#' url <- "http://service.scedc.caltech.edu/station/weblist.php"
+#' dat <- scan(url, what = "character", sep = "\n", skip = 7)
+#' network <- substr(dat, start = 1, stop = 2)
+#' sta.name <- substr(dat, start = 5, stop = 9)
+#' sta.lat <- as.numeric(substr(dat, start = 52, stop = 59))
+#' sta.lon <- as.numeric(substr(dat, start = 61, stop = 70))
+#' sta.on <- as.numeric(substr(dat, start = 78, stop = 81))
+#' sta.off <- as.numeric(substr(dat, start = 89, stop = 92))
+#' stations <- data.frame(lon = sta.lon, lat = sta.lat, name = sta.name)
+#' stations <- subset(stations, (network == "CI" & sta.off > min(seism$yr) & sta.on < max(seism$yr)))
+#' stations <- subset(stations, (duplicated(name) == F))
+#'
+#' # Apply the BMC method (this may take a few minutes)
+#' res <- bmc(seism, stations, dbin = 0.1)
+#'
+#' #display the 6 BMC maps (mc.obs, mc.pred, mc.post, sigma.obs, sigma.pred, sigma.post)
+#' image(matrix(res$mc.obs, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))))
+#' image(matrix(res$mc.pred, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))))
+#' image(matrix(res$mc.post, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))))
+#' image(matrix(res$sigma.obs, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))))
+#' image(matrix(res$sigma.pred, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))))
+#' image(matrix(res$sigma.post, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))))
+bmc <- function(seism, stations, support = "fast", mbin = 0.1, box = NULL, dbin = NULL, kth = 4) {
   if(support == "fast") {
-    cat("Compute observed mc map (optimized)")
+    cat("Compute observed mc map (optimized)", "\n")
     mc.obs <- mc.geogr(seism, "mode", "circle.opt", mbin = mbin, box = box, dbin = dbin,
                        nmin = 4, R = NULL, stations = stations, kth = kth, n.bootstrap = 200)
 
-    cat("Compute predicted mc map (calibrated default prior model)")
+    cat("Compute predicted mc map (calibrated default prior model)", "\n")
     prior <- bmc.prior(mc.obs, stations, kth = kth, support = "calibrated")
     mc.pred <- (prior[[1]]$c1 * prior[[2]]$d.kth ^ prior[[1]]$c2 + prior[[1]]$c3)
     sigma.pred <- rep(prior[[1]]$sigma, nrow(mc.obs))
 
-    cat("Compute posterior mc map (combining both observed & predicted mc maps)")
+    cat("Compute posterior mc map (combining both observed & predicted mc maps)", "\n")
     bmc.res <- bmc.bayes(mc.obs, mc.pred, sigma.pred)
     return(bmc.res)
   }
