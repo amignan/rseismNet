@@ -7,7 +7,8 @@
 bmc.prior(mc.obs, stations, kth = 4, support = "calibrated")
 }
 \arguments{
-\item{mc.obs}{a data frame of the observed mc map, defined by the function \code{mc.geogr}}
+\item{mc.obs}{a data frame of the observed \out{m<sub>c</sub>} map defined by the
+function \code{mc.geogr}}
 
 \item{stations}{the seismic network data frame of parameters:
 \itemize{
@@ -16,43 +17,46 @@ bmc.prior(mc.obs, stations, kth = 4, support = "calibrated")
 \item \code{...} other station attributes
 }}
 
-\item{kth}{the \code{kth = 3} seismic station used for distance calculation (if not provided,
-\code{kth = 4})}
+\item{kth}{the \out{k<sup>th</sup>} nearest seismic station used for distance
+calculation (if not provided, \code{kth = 4})}
 
 \item{support}{the information supporting the prior model: \code{"calibrated"} or
-\code{"data"} (if not provided, \code{support = "calibrated"} - read Details)}
+\code{"data"} (if not provided, \code{support = "calibrated"} - see Details)}
 }
 \value{
 A list of
 
-the BMC prior parameter list
+the BMC prior model parameter list
 \itemize{
 \item \code{c1}, \code{c2}, \code{c3} the empirical parameters
-\item \code{sigma} the standard error
-\item \code{kth}   the kth seismic station used for distance calculation
+\item \code{sigma} the standard deviation
+\item \code{kth}   the \out{k<sup>th</sup>} nearest seismic station used for distance calculation
 \item \code{support}   the information supporting the prior model
 }
 
 the input data frame
 \itemize{
 \item \code{mc}   the completeness magnitude value per cell
-\item \code{d.kth}   the distance to the kth nearest seismic station per cell
+\item \code{d.kth}   the distance to the \out{k<sup>th</sup>} nearest seismic station per
+cell (in km)
 }
 }
 \description{
 Define the prior model of the Bayesian Magnitude of Completeness (BMC) method (Mignan et
-al., 2011) by fitting a function of the form xx with \emph{\out{m<sub>c</sub>}} the observed completeness magnitude
-in any given cell and d the distance to the kth nearest seismic station
+al., 2011) by fitting a function of the form
+\ifelse{html}{\out{m<sub>c</sub> = c<sub>1</sub>d^c<sub>2</sub>+c<sub>3</sub>}}{\eqn{m_c = c_1 d^{c_2} +c_3}}
+the observed completeness magnitude per cell and d the distance from the cell center to
+the \out{k<sup>th</sup>} nearest seismic station.
 }
 \details{
-\code{support = "calibrated"} uses the generic BMC prior defined by function
-\code{bmc.prior.generic} and calibrates it to the \code{mc.obs} data by shifting the
-residual average to 0, substracting it from c3 (see e.g., Mignan et al., 2013; Mignan
+\code{support = "calibrated"} uses the default BMC prior model defined by the function
+\code{bmc.prior.default} and calibrates it to the \code{mc.obs} data by shifting the
+residual average to 0, substracting it from \out{c<sub>3</sub>} (see e.g., Mignan et al., 2013; Mignan
 and Chouliaras, 2014).
 
 \code{support = "data"} directly fits the prior function to the \code{mc.obs} data
-by using the Nonlinear Least Squares \code{stats::nls} function. If the estimation fails,
-\code{support = "calibrated"} is automatically used instead.
+by using the Nonlinear Least Squares function \code{stats::nls}. If the estimation fails,
+\code{support = "calibrated"} is used instead.
 }
 \examples{
 # download the Southern California relocated catalogue of Hauksson et al. (2012)
@@ -64,7 +68,6 @@ lat <- as.numeric(substr(dat, start=35, stop=42))
 lon <- as.numeric(substr(dat, start=44, stop=53))
 m <- as.numeric(substr(dat, start=63, stop=67))
 seism <- data.frame(yr = yr, lon = lon,lat = lat, m = m)
-mc.obs <- mc.geogr(seism, "mode", "grid", dbin = 0.1)
 
 # download the Southern California seismic network data
 url <- "http://service.scedc.caltech.edu/station/weblist.php"
@@ -79,6 +82,9 @@ stations <- data.frame(lon = sta.lon, lat = sta.lat, name = sta.name)
 stations <- subset(stations, (network == "CI" & sta.off > min(seism$yr) & sta.on < max(seism$yr)))
 stations <- subset(stations, (duplicated(name) == F))
 
+# map the observed mc (this may take a few minutes)
+mc.obs <- mc.geogr(seism, "mode", "grid", dbin = 0.1)
+
 # test the two possible priors & plot
 model.calibrated <- bmc.prior(mc.obs, stations, kth = 5)
 model.fromdata <- bmc.prior(mc.obs, stations, kth = 5, support = "data")
@@ -86,7 +92,7 @@ data <- model.calibrated[[2]]
 di <- seq(0, max(data$d.kth))
 params.cal <- model.calibrated[[1]]
 params.dat <- model.fromdata[[1]]
-plot(data$d.kth, data$mc)
+plot(data$d.kth, data$mc.obs)
 lines(di, params.cal$c1*di^params.cal$c2+params.cal$c3, col="orange")
 lines(di, params.dat$c1*di^params.dat$c2+params.dat$c3, col="red")
 }

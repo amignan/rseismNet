@@ -7,15 +7,16 @@
 bmc.prior.default(kth)
 }
 \arguments{
-\item{kth}{the \out{<i>k</i><sup>th</sup>} seismic station used for distance calculation (if not provided,
-\code{kth = 4})}
+\item{kth}{the \out{k<sup>th</sup>} nearest seismic station used for
+distance calculation (if not provided, \code{kth = 4})}
 }
 \value{
 the BMC prior parameter list
 \itemize{
 \item \code{c1}, \code{c2}, \code{c3} the empirical parameters
 \item \code{sigma} the standard error
-\item \code{kth}   the kth seismic station used for distance calculation
+\item \code{kth}   the \out{k<sup>th</sup>} nearest seismic station used for
+distance calculation
 \item \code{support}   the information supporting the prior model (here
 \code{support = "default"})
 }
@@ -23,16 +24,35 @@ the BMC prior parameter list
 \description{
 List the parameters of the default prior model of the Bayesian Magnitude of
 Completeness (BMC) method, as defined in Mignan et al. (2011) for different
-\out{<i>k</i><sup>th</sup>} values (only \code{kth = 3}, \code{4} and \code{5}
+\out{k<sup>th</sup>} values (only \code{kth = 3}, \code{4} and \code{5}
 allowed, otherwise returns \code{NULL}).
 }
 \details{
-The generic model is defined as the prior model evaluated for the Taiwan earthquake data
+The BMC default model is defined as the prior model evaluated for the Taiwan earthquake data
 (Mignan et al., 2011), as it represents the best constrained data set so far (read more
 on this in Mignan and Chouliaras, 2014). It often provides a better prior once calibrated
 to other data than a new fit to the data (see example given for the function
 \code{bmc.prior}). It is also used for rapid mapping of the optimal
-\emph{\out{m<sub>c</sub>}} map (see function \code{mc.geogr}).
+\out{m<sub>c</sub>} map (see function \code{mc.geogr}).
+}
+\examples{
+# map the predicted mc for a set of simulated stations
+box <- c(-5, 5, -5, 5); dbin <- 0.1  #degrees
+sta.n <- 30
+stations <- data.frame(lon = rnorm(sta.n), lat=rnorm(sta.n))
+grid <- expand.grid(lon = seq(box[1], box[2], dbin), lat = seq(box[3], box[4], dbin))
+grid.n <- nrow(grid)
+
+kth <- 4
+params <- bmc.prior.default(kth)
+pt.grid <- matrix(c(grid$lon, grid$lat), nrow = grid.n, ncol = 2)
+pt.sta <- matrix(c(stations$lon, stations$lat), nrow = sta.n, ncol = 2)
+d_m <- sapply(1:grid.n, function(i) geosphere::distHaversine(pt.grid[i, ], pt.sta))
+d.kth <- sapply(1:grid.n, function(i) sort(d_m[,i])[kth] * 1e-3)  # in km
+mc.pred <- (params$c1 * d.kth ^ params$c2 + params$c3)
+image(unique(grid$lon), unique(grid$lat),
+  matrix(mc.pred, nrow=length(unique(grid$lon)), ncol=length(unique(grid$lat))))
+points(stations, pch = 2)
 }
 \references{
 Mignan, A., Werner, M.J., Wiemer, S., Chen, C.-C., Wu, Y.-M. (2011),

@@ -5,7 +5,8 @@
 \title{Completeness Magnitude Mapping}
 \usage{
 mc.geogr(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL,
-  nmin = NULL, R = 30, stations = NULL, kth = 5)
+  nmin = NULL, R = 30, stations = NULL, kth = 4, params = NULL,
+  n.bootstrap = 0)
 }
 \arguments{
 \item{seism}{an earthquake catalog data frame of parameters:
@@ -16,8 +17,8 @@ mc.geogr(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL,
 \item \code{...} other earthquake parameters
 }}
 
-\item{method}{the method to be used to evaluate \emph{\out{m<sub>c</sub>}}: \code{"mode"}, \code{"mbass"}, or \code{"gft"}
-(see Details of function \code{mc.val})}
+\item{method}{the method to be used to evaluate \out{m<sub>c</sub>}: \code{"mode"},
+\code{"mbass"}, or \code{"gft"} (see Details of function \code{mc.val})}
 
 \item{mapping}{the mapping to be used: \code{"grid"}, \code{"circle.cst"}, or
 \code{"circle.opt"} (see Details)}
@@ -32,7 +33,7 @@ the geographical limits of \code{seism})}
 the map is made of 10 longitudinal cells based on \code{box})}
 
 \item{nmin}{the minimum number of earthquakes required to evaluate
-\emph{\out{m<sub>c</sub>}} (if not provided, \code{nmin = 4} for \code{method = "mode"},
+\out{m<sub>c</sub>} (if not provided, \code{nmin = 4} for \code{method = "mode"},
 otherwise \code{nmin = 50}; see explanation in Mignan et al., 2011)}
 
 \item{R}{the cylinder radius in kilometers for \code{"mapping = circle.cst"} (if not provided,
@@ -46,35 +47,54 @@ of parameters:
 \item \code{...} other station attributes
 }}
 
-\item{kth}{the \code{kth = 3} seismic station used for distance calculation for
-\code{"mapping = circle.opt"} (if not provided, \code{kth = 4})}
+\item{kth}{the \out{k<sup>th</sup>} nearest seismic station used for
+distance calculation in \code{"mapping = circle.opt"} (if not provided, \code{kth = 4})}
+
+\item{params}{the BMC prior parameter list to be used for \code{"mapping = circle.opt"}
+(if not provided, uses the default parameters from function \code{bmc.prior.default}):
+\itemize{
+\item \code{c1}, \code{c2}, \code{c3} the empirical parameters
+\item \code{sigma} the standard deviation
+\item \code{kth}   the \out{k<sup>th</sup>} nearest seismic station used for
+distance calculation
+\item \code{support} the information supporting the prior model
+}}
+
+\item{n.bootstrap}{the number of bootstraps (if not provided, \code{n.bootstrap = 0})}
 }
 \value{
-The data frame of 3 parameters:
+The data frame of 4 parameters:
 \itemize{
 \item \code{lon} the longitude of the cell center
 \item \code{lat} the latitude of the cell center
-\item \code{mc}  the completeness magnitude \emph{\out{m<sub>c</sub>}} in the cell
+\item \code{mc.obs}  the completeness magnitude \out{m<sub>c</sub>} observed in the cell
+\item \code{sigma.obs}  the \out{m<sub>c</sub>} standard error in the cell
 }
 }
 \description{
-Map the completeness magnitude \emph{\out{m<sub>c</sub>}} for a seismicity data
+Map the completeness magnitude \out{m<sub>c</sub>} for a seismicity data
 frame \code{seism}, following one of three possible geographical mappings (see Details).
 }
 \details{
-\code{"mapping = grid"} computes \emph{\out{m<sub>c</sub>}} for earthquakes located in
+\code{"mapping = grid"} computes \out{m<sub>c</sub>} for earthquakes located in
 each cell of bin size \code{dbin}.
 
-\code{"mapping = circle.cst"} computes \emph{\out{m<sub>c</sub>}} for earthquakes located
+\code{"mapping = circle.cst"} computes \out{m<sub>c</sub>} for earthquakes located
 in cylinders centered on each cell and with radius \code{R} (see the smoothing impact of
-increasing R in Mignan et al., 2011).
+increasing radius in Mignan et al., 2011).
 
-\code{"mapping = circle.opt"} computes \emph{\out{m<sub>c</sub>}} for earthquakes located
+\code{"mapping = circle.opt"} computes \out{m<sub>c</sub>} for earthquakes located
 in cylinders centered on each cell and with variable radius estimated from the seismic
 network spatial density (Mignan et al., 2011). This method aims at minimizing
-\emph{\out{m<sub>c</sub>}} spatial heterogeneities by using a small radius in the dense
-parts of the network where \emph{\out{m<sub>c</sub>}} changes faster. The method depends
-on the default BMC prior model parameters defined in function \code{bmc.prior.default}.
+\out{m<sub>c</sub>} spatial heterogeneities by using a smaller radius in the dense
+parts of the network where \out{m<sub>c</sub>} changes faster.
+
+The completeness magnitude \out{m<sub>c</sub>} is evaluated for \code{n.bootstrap}
+bootstraps, with \code{mc.obs} the mean value and \code{sigma.obs} the standard error. For
+\code{n.bootstrap = 0}, \code{sigma.obs = NA}.
+
+The function calls \code{geosphere::distHaversine} to calculate distances between
+geographical points.
 }
 \examples{
 # download the Southern California relocated catalogue of Hauksson et al. (2012)
@@ -92,11 +112,11 @@ seism <- subset(seism, yr >= 2008)
 
 # map mc in a grid
 mc.grid <- mc.geogr(seism, "mode", "grid", dbin = 0.1)
-image(matrix(mc.grid$mc, nrow=length(unique(mc.grid$lon)), ncol=length(unique(mc.grid$lat))))
+image(matrix(mc.grid$mc.obs, nrow=length(unique(mc.grid$lon)), ncol=length(unique(mc.grid$lat))))
 
-# map mc with cylinder smoothing (this takes a few minutes!)
-mc.cst <- mc.geogr(seism, "mbass", "circle.cst", dbin = 0.1)
-image(matrix(mc.cst$mc, nrow=length(unique(mc.cst$lon)), ncol=length(unique(mc.cst$lat))))
+# map mc with cylinder smoothing (this may take a few minutes!)
+mc.cst <- mc.geogr(seism, "mbass", "circle.cst", dbin = 0.1, R = 20)
+image(matrix(mc.cst$mc.obs, nrow=length(unique(mc.cst$lon)), ncol=length(unique(mc.cst$lat))))
 
 # download the Southern California seismic network data
 url <- "http://service.scedc.caltech.edu/station/weblist.php"
@@ -114,7 +134,7 @@ stations <- subset(stations, (duplicated(name) == F))
 # map mc with optimal sample size (this takes a few minutes!)
 # (minimizes mc heterogeneities while maximizing sample size)
 mc.opt <- mc.geogr(seism, "mode", "circle.opt", dbin = 0.1, stations = stations)
-image(matrix(mc.opt$mc, nrow=length(unique(mc.opt$lon)), ncol=length(unique(mc.opt$lat))))
+image(matrix(mc.opt$mc.obs, nrow=length(unique(mc.opt$lon)), ncol=length(unique(mc.opt$lat))))
 }
 \references{
 Mignan, A., Werner, M.J., Wiemer, S., Chen, C.-C., Wu, Y.-M. (2011),
@@ -123,5 +143,5 @@ Catalogs, Bull. Seismol. Soc. Am., 101, 1371-1385,
 \href{https://pubs.geoscienceworld.org/bssa/article-lookup/101/3/1371}{doi: 10.1785/0120100223}
 }
 \seealso{
-\code{bmc.prior.default}; \code{mc.val}
+\code{bmc.prior}; \code{bmc.prior.default}; \code{mc.val}
 }
