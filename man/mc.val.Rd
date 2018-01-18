@@ -15,34 +15,34 @@ mc.val(m, method, mbin = 0.1)
 \item{mbin}{the magnitude binning value (if not provided, \code{mbin = 0.1})}
 }
 \value{
-The numeric value of \emph{\out{m<sub>c</sub>}}
+The numeric value of \out{m<sub>c</sub>}.
 }
 \description{
-Estimate the completeness magnitude \emph{\out{m<sub>c</sub>}} from the
+Estimate the completeness magnitude \out{m<sub>c</sub>} from the
 earthquake frequency magnitude distribution (FMD) using different published methods.
 }
 \details{
 \code{method = "mode"} calculates the mode of the vector of magnitudes
 \code{m}. Applies to angular FMDs (Mignan, 2012), otherwise systematically
-underestimates \emph{\out{m<sub>c</sub>}}.
+underestimates \out{m<sub>c</sub>}.
 
 \code{method = "mbass"} ("median-based analysis of the segment slope")
-determines the main breakpoints of the earthquake FMD. \emph{\out{m<sub>c</sub>}}
+determines the main breakpoints of the earthquake FMD. \out{m<sub>c</sub>}
 is defined as the change point that corresponds to the smallest probability of
 making an error when rejecting the null-hypothesis in a Wilcoxon-Mann-Whitney test
 (Amorese, 2007).
 
 \code{method = "gft"} estimates the goodness-of-fit between the cumulative
 number of earthquakes observed and predicted by the Gutenberg-Richter model.
-\emph{\out{m<sub>c</sub>}} is defined as the lowest magnitude bin at which a fixed
+\out{m<sub>c</sub>} is defined as the lowest magnitude bin at which a fixed
 threshold \emph{R} is first met. \emph{R} is defined as a normalized absolute
 difference, fixed to 0.95. If the threshold is not reached, 0.90 is used. If again
 the threshold is not reached, the \code{method = "mode"} is used instead
 (Wiemer and Wyss, 2000).
 
 Both \code{"mode"} and \code{"mbass"} methods are non-parametric while \code{"gft"}
-depends on the fitting of the Gutenberg-Richter model (see function
-\code{beta.mle}). For a general review of FMD-based \emph{\out{m<sub>c</sub>}}
+depends on the fitting of the Gutenberg-Richter model (see the function
+\code{beta.mle}). For a general review of FMD-based \out{m<sub>c</sub>}
 estimation methods, see Mignan and Woessner (2012). For further comparisons of
 \code{"mbass"} and \code{"gft"}, see Mignan and Chouliaras (2014).
 }

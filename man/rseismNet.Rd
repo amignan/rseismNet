@@ -20,6 +20,11 @@ using the Bayesian Magnitude of Completeness (BMC) method.
 beta.mle, bfmd.pdf, bfmd.sim, efmd.pdf, efmd.sim, fmd, mc.val
 }
 
+\section{rseismNet mapping functions}{
+
+bmc, bmc.bayes, bmc.prior, bmc.prior.default, mc.geogr
+}
+
 \references{
 Aki, K. (1965), Maximum likelihood estimate of b in the formula log N =
 a - bM and its confidence limits, Bull. Earthquake Res. Inst. Univ. Tokyo, 43, 237-239
@@ -34,6 +39,10 @@ Springer-Verlag New York Inc., New York, 843 pp.
 Gutenberg, B., Richter, C.F. (1944), Frequency of earthquakes in California,
 Bull. Seismol. Soc. Am.,
 \href{https://authors.library.caltech.edu/47734/1/185.full.pdf}{34, 184-188}
+
+Kraft, T., Mignan, A., Giardini, D. (2013), Optimization of a large-scale
+microseismic monitoring network in northern Switzerland, Geophys. J. Int., 195, 474-490,
+\href{https://academic.oup.com/gji/article/195/1/474/601101}{doi: 10.1093/gji/ggt225}
 
 Lewis, P.A.W., Shedler, G.S. (1979), Simulation of nonhomogeneous poisson
 processes by thinning, Naval Res. Logistics, 26, 403-413
@@ -65,6 +74,16 @@ Seismol. Res. Lett., 85, 657-667
 Mignan, A., Chen, C.-C. (2016), The Spatial Scale of Detected Seismicity,
 Pure Appl. Geophys., 173, 117-124,
 \href{https://link.springer.com/article/10.1007/s00024-015-1133-7}{doi: 10.1007/s00024-015-1133-7}
+
+Panzera, F., Mignan, A., Vogfjord, K.S. (2017), Spatiotemporal evolution of
+the completeness magnitude of the Icelandic earthquake catalogue from 1991 to 2013, J.
+Seismol., 21, 615-630,
+\href{https://link.springer.com/article/10.1007/s10950-016-9623-3}{doi: 10.1007/s10950-016-9623-3}
+
+Tormann, T., Wiemer, S., Mignan, A. (2014), Systematic survey of
+high-resolution b value imaging along Californian faults: inference on asperities, J.
+Geophys. Res. Solid Earth, 119, 2029-2054,
+\href{http://onlinelibrary.wiley.com/doi/10.1002/2013JB010867/full}{doi: 10.1002/2013JB010867}
 
 Wiemer, S., Wyss, M. (2000), Minimum Magnitude of Completeness in
 Earthquake Catalogs: Examples from Alaska, the Western United States, and Japan,

@@ -12,21 +12,22 @@ fmd(m, mbin = 0.1)
 \item{mbin}{the magnitude binning value (if not provided, \code{mbin = 0.1})}
 }
 \value{
-The earthquake FMD data frame made of the 3 columns:
+The earthquake FMD data frame of 3 parameters:
 \item{mi}{the magnitude bins}
 \item{ni}{the non-cumulative number of earthquakes of magnitude \code{mi}}
 \item{Ni}{the cumulative number of earthquakes of magnitude \eqn{\ge} \code{mi}}
 }
 \description{
 Compute the earthquake frequency magnitude distribution (FMD) for a vector of
-earthquake magnitudes \emph{m} with binning \emph{\out{m<sub>bin</sub>}}.
+earthquake magnitudes \code{m} with binning \code{mbin}.
 }
 \details{
 Magnitude intervals have the form
 \out{(<i>m<sub>i</sub></i> - <i>m<sub>bin</sub></i>/2, <i>m<sub>i</sub></i> + <i>m<sub>bin</sub></i>/2]},
-as defined in function \code{hist} (its default \code{right = TRUE}).
+as defined in function \code{graphics::hist} (for its default \code{right = TRUE}).
 }
 \examples{
+mbin <- 0.1
 beta <- log(10); mc <- 2
 m <- mc - mbin / 2 + rexp(1e3, beta)
 mdistr <- fmd(m)
