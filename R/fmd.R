@@ -1,19 +1,20 @@
 #' The Earthquake FMD
 #'
 #' Compute the earthquake frequency magnitude distribution (FMD) for a vector of
-#' earthquake magnitudes \emph{m} with binning \emph{\out{m<sub>bin</sub>}}.
+#' earthquake magnitudes \code{m} with binning \code{mbin}.
 #'
 #' Magnitude intervals have the form
 #' \out{(<i>m<sub>i</sub></i> - <i>m<sub>bin</sub></i>/2, <i>m<sub>i</sub></i> + <i>m<sub>bin</sub></i>/2]},
-#' as defined in function \code{hist} (its default \code{right = TRUE}).
+#' as defined in function \code{graphics::hist} (for its default \code{right = TRUE}).
 #'
 #' @param m a numeric vector of earthquake magnitudes
 #' @param mbin the magnitude binning value (if not provided, \code{mbin = 0.1})
-#' @return The earthquake FMD data frame made of the 3 columns:
+#' @return The earthquake FMD data frame of 3 parameters:
 #'    \item{mi}{the magnitude bins}
 #'    \item{ni}{the non-cumulative number of earthquakes of magnitude \code{mi}}
 #'    \item{Ni}{the cumulative number of earthquakes of magnitude \eqn{\ge} \code{mi}}
 #' @examples
+#' mbin <- 0.1
 #' beta <- log(10); mc <- 2
 #' m <- mc - mbin / 2 + rexp(1e3, beta)
 #' mdistr <- fmd(m)
@@ -29,30 +30,30 @@ fmd <- function(m, mbin = 0.1) {
 
 #' Completeness Magnitude FMD-based Estimation
 #'
-#' Estimate the completeness magnitude \emph{\out{m<sub>c</sub>}} from the
+#' Estimate the completeness magnitude \out{m<sub>c</sub>} from the
 #' earthquake frequency magnitude distribution (FMD) using different published methods.
 #'
 #' \code{method = "mode"} calculates the mode of the vector of magnitudes
 #' \code{m}. Applies to angular FMDs (Mignan, 2012), otherwise systematically
-#' underestimates \emph{\out{m<sub>c</sub>}}.
+#' underestimates \out{m<sub>c</sub>}.
 #'
 #' \code{method = "mbass"} ("median-based analysis of the segment slope")
-#' determines the main breakpoints of the earthquake FMD. \emph{\out{m<sub>c</sub>}}
+#' determines the main breakpoints of the earthquake FMD. \out{m<sub>c</sub>}
 #' is defined as the change point that corresponds to the smallest probability of
 #' making an error when rejecting the null-hypothesis in a Wilcoxon-Mann-Whitney test
 #' (Amorese, 2007).
 #'
 #' \code{method = "gft"} estimates the goodness-of-fit between the cumulative
 #' number of earthquakes observed and predicted by the Gutenberg-Richter model.
-#' \emph{\out{m<sub>c</sub>}} is defined as the lowest magnitude bin at which a fixed
+#' \out{m<sub>c</sub>} is defined as the lowest magnitude bin at which a fixed
 #' threshold \emph{R} is first met. \emph{R} is defined as a normalized absolute
 #' difference, fixed to 0.95. If the threshold is not reached, 0.90 is used. If again
 #' the threshold is not reached, the \code{method = "mode"} is used instead
 #' (Wiemer and Wyss, 2000).
 #'
 #' Both \code{"mode"} and \code{"mbass"} methods are non-parametric while \code{"gft"}
-#' depends on the fitting of the Gutenberg-Richter model (see function
-#' \code{beta.mle}). For a general review of FMD-based \emph{\out{m<sub>c</sub>}}
+#' depends on the fitting of the Gutenberg-Richter model (see the function
+#' \code{beta.mle}). For a general review of FMD-based \out{m<sub>c</sub>}
 #' estimation methods, see Mignan and Woessner (2012). For further comparisons of
 #' \code{"mbass"} and \code{"gft"}, see Mignan and Chouliaras (2014).
 #'
@@ -60,7 +61,7 @@ fmd <- function(m, mbin = 0.1) {
 #' @param method the method to be used: \code{"mode"}, \code{"mbass"}, or \code{"gft"}
 #' (read Details)
 #' @param mbin the magnitude binning value (if not provided, \code{mbin = 0.1})
-#' @return The numeric value of \emph{\out{m<sub>c</sub>}}
+#' @return The numeric value of \out{m<sub>c</sub>}.
 #' @references Amorese, D. (2007), Applying a Change-Point Detecion Method on
 #' Frequency-Magnitude Distributions, Bull. Seismol. Soc. Am., 97, 1742-1749,
 #' \href{https://pubs.geoscienceworld.org/ssa/bssa/article-abstract/97/5/1742/146470/applying-a-change-point-detection-method-on}{doi: 10.1785/0120060181}
@@ -78,14 +79,16 @@ fmd <- function(m, mbin = 0.1) {
 #' Earthquake Catalogs: Examples from Alaska, the Western United States, and Japan,
 #' Bull. Seismol. Soc. Am.,
 #' \href{https://pubs.geoscienceworld.org/ssa/bssa/article-abstract/90/4/859/120531/minimum-magnitude-of-completeness-in-earthquake}{90, 859-869}
-#' @seealso \code{beta.mle}; \code{fmd}
+#' @seealso \code{beta.mle}; \code{bfmd.sim}; \code{efmd.sim}; \code{fmd}
 #' @examples
+#' # Estimate mc for an angular FMD
 #' theta <- list(kappa = 3 * log(10), beta = log(10), mc = 2)
 #' m.angular <- efmd.sim(1e3, theta)
 #' mc.val(m.angular, "mode")
 #' mc.val(m.angular, "mbass")
 #' mc.val(m.angular, "gft")
 #'
+#' # Estimate mc for a curved FMD
 #' theta <- list(beta = log(10), mu = 2, sigma = 0.5)
 #' m.curved <- bfmd.sim(1e4, theta)
 #' mc.mode <- mc.val(m.curved, "mode")
@@ -96,10 +99,11 @@ fmd <- function(m, mbin = 0.1) {
 #' points(mdistr$mi, mdistr$ni)
 #' abline(v=c(mc.mode, mc.mbass, mc.gft), lty=c("dotted","solid","dashed"))
 #'
-#' mbin <- 0.1
+#' # download the Southern California relocated catalogue of Hauksson et al. (2012)
 #' url <- "http://service.scedc.caltech.edu/ftp/catalogs/"
 #' dat <- "hauksson/Socal_DD/hs_1981_2016_comb_K4_A.cat_so_SCSN_v2q"
 #' seism <- scan(paste(url, dat, sep = ""), what = "character", sep = "\n")
+#' mbin <- 0.1
 #' m <- round(as.numeric(substr(seism, start=63, stop=67)), digits = log10(1/mbin))
 #' mc.mode <- mc.val(m, "mode")
 #' mc.mbass <- mc.val(m, "mbass")
@@ -191,10 +195,10 @@ mc.val <- function(m, method, mbin = 0.1) {
   }
 }
 
-#' Gutenberg-Richter \eqn{\beta}-value Estimation
+#' Gutenberg-Richter \eqn{\beta}-value
 #'
-#' Estimates the \eqn{\beta}-value (i.e. slope) of the Gutenberg-Richter model (Gutenberg and Richter, 1944)
-#' by using the maximum likelihood method (Aki, 1965).
+#' Estimate the \eqn{\beta}-value (i.e. slope) of the Gutenberg-Richter model
+#' (Gutenberg and Richter, 1944) by using the maximum likelihood estimation method (Aki, 1965).
 #'
 #' Note that \eqn{\beta} = \emph{b} log(10).
 #'
@@ -227,7 +231,7 @@ beta.mle <- function(m, mc, mbin = 0.1) {
 #'
 #' The angular FMD model is defined as an Asymmetric Laplace distribution. It has an
 #' angular shape in the log-lin space and corresponds to the case where the completeness
-#' magnitude \emph{\out{m<sub>c</sub>}} is constant (read more in Mignan, 2012; Mignan and
+#' magnitude \out{m<sub>c</sub>} is constant (learn more in Mignan, 2012; Mignan and
 #' Chen, 2016).
 #'
 #' @param m a numeric vector of earthquake magnitudes
@@ -260,7 +264,7 @@ efmd.pdf <- function(m, theta) {
 #'
 #' The angular FMD model is defined as an Asymmetric Laplace distribution. It has an
 #' angular shape in the log-lin space and corresponds to the case where the completeness
-#' magnitude \emph{\out{m<sub>c</sub>}} is constant (read more in Mignan, 2012; Mignan and
+#' magnitude \out{m<sub>c</sub>} is constant (read more in Mignan, 2012; Mignan and
 #' Chen, 2016).
 #'
 #' @param N the number of earthquakes to simulate
@@ -301,8 +305,8 @@ efmd.sim <- function(N, theta, mbin = 0.1) {
 #' The bulk FMD model is the product of the Gutenberg-Richter model and a detection function
 #' defined as the cumulative Normal distribution. Its FMD has a curved shape in the log-lin
 #' space and corresponds to the case where the completeness magnitude
-#' \emph{\out{m<sub>c</sub>}} is variable (the FMD curvature representing the
-#' \emph{\out{m<sub>c</sub>}} distribution; read more in Mignan, 2012; Mignan and Chen, 2016).
+#' \out{m<sub>c</sub>} is variable (the FMD curvature representing the
+#' \out{m<sub>c</sub>} distribution; read more in Mignan, 2012; Mignan and Chen, 2016).
 #'
 #' @param m a numeric vector of earthquake magnitudes
 #' @param theta a list of 3 parameters:
