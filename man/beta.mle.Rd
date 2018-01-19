@@ -2,7 +2,7 @@
 % Please edit documentation in R/fmd.R
 \name{beta.mle}
 \alias{beta.mle}
-\title{Gutenberg-Richter \eqn{\beta}-value Estimation}
+\title{Gutenberg-Richter \eqn{\beta}-value}
 \usage{
 beta.mle(m, mc, mbin = 0.1)
 }
@@ -17,8 +17,8 @@ beta.mle(m, mc, mbin = 0.1)
 The numeric value of \eqn{\beta}.
 }
 \description{
-Estimates the \eqn{\beta}-value (i.e. slope) of the Gutenberg-Richter model (Gutenberg and Richter, 1944)
-by using the maximum likelihood method (Aki, 1965).
+Estimate the \eqn{\beta}-value (i.e. slope) of the Gutenberg-Richter model
+(Gutenberg and Richter, 1944) by using the maximum likelihood estimation method (Aki, 1965).
 }
 \details{
 Note that \eqn{\beta} = \emph{b} log(10).

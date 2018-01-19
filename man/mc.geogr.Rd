@@ -6,7 +6,7 @@
 \usage{
 mc.geogr(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL,
   nmin = NULL, R = 30, stations = NULL, kth = 4, params = NULL,
-  n.bootstrap = 0)
+  dist.calc = "fast", n.bootstrap = 0)
 }
 \arguments{
 \item{seism}{an earthquake catalog data frame of parameters:
@@ -59,6 +59,9 @@ distance calculation in \code{"mapping = circle.opt"} (if not provided, \code{kt
 distance calculation
 \item \code{support} the information supporting the prior model
 }}
+
+\item{dist.calc}{the method to be used to evaluate distances (if not provided,
+\code{dist.calc = "fast"}; read Details of function \code{d.geogr2km})}
 
 \item{n.bootstrap}{the number of bootstraps (if not provided, \code{n.bootstrap = 0})}
 }
@@ -143,5 +146,5 @@ Catalogs, Bull. Seismol. Soc. Am., 101, 1371-1385,
 \href{https://pubs.geoscienceworld.org/bssa/article-lookup/101/3/1371}{doi: 10.1785/0120100223}
 }
 \seealso{
-\code{bmc.prior}; \code{bmc.prior.default}; \code{mc.val}
+\code{bmc.prior}; \code{bmc.prior.default}; \code{d.geogr2km}; \code{mc.val}
 }

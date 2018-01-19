@@ -4,7 +4,8 @@
 \alias{bmc.prior}
 \title{BMC Prior}
 \usage{
-bmc.prior(mc.obs, stations, kth = 4, support = "calibrated")
+bmc.prior(mc.obs, stations, kth = 4, support = "calibrated",
+  dist.calc = "fast")
 }
 \arguments{
 \item{mc.obs}{a data frame of the observed \out{m<sub>c</sub>} map defined by the
@@ -22,6 +23,9 @@ calculation (if not provided, \code{kth = 4})}
 
 \item{support}{the information supporting the prior model: \code{"calibrated"} or
 \code{"data"} (if not provided, \code{support = "calibrated"} - see Details)}
+
+\item{dist.calc}{the method to be used to evaluate distances (if not provided,
+\code{dist.calc = "fast"}; read Details of function \code{d.geogr2km})}
 }
 \value{
 A list of
@@ -113,5 +117,5 @@ Seismol. Res. Lett., 85, 657-667
 \href{https://pubs.geoscienceworld.org/ssa/srl/article-abstract/85/3/657/315375/fifty-years-of-seismic-network-performance-in}{doi: 10.1785/0220130209}
 }
 \seealso{
-\code{bmc}; \code{bmc.prior.default}; \code{mc.geogr}
+\code{bmc}; \code{bmc.prior.default}; \code{d.geogr2km}; \code{mc.geogr}
 }
