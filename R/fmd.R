@@ -224,38 +224,6 @@ beta.mle <- function(m, mc, mbin = 0.1) {
   1 / (mean(m[which(m > mc - mbin / 2)]) - (mc - mbin / 2))
 }
 
-#' PDF of the Elemental FMD
-#'
-#' Compute the probability density function (PDF) of the elemental
-#' frenquency-magnitude distribution (FMD), as defined by Mignan (2012).
-#'
-#' The angular FMD model is defined as an Asymmetric Laplace distribution. It has an
-#' angular shape in the log-lin space and corresponds to the case where the completeness
-#' magnitude \out{m<sub>c</sub>} is constant (learn more in Mignan, 2012; Mignan and
-#' Chen, 2016).
-#'
-#' @param m a numeric vector of earthquake magnitudes
-#' @param theta a list of 3 parameters:
-#' * \code{kappa} the detection parameter value
-#' * \code{beta}  the Gutenberg-Richter parameter value
-#' * \code{mc}    the completeness magnitude value
-#' @return A numeric vector of densities.
-#' @references Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
-#' distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
-#' \href{http://onlinelibrary.wiley.com/doi/10.1029/2012JB009347/full}{doi: 10.1029/2012JB009347}
-#' @references Mignan, A., Chen, C.-C. (2016), The Spatial Scale of Detected Seismicity,
-#' Pure Appl. Geophys., 173, 117-124,
-#' \href{https://link.springer.com/article/10.1007/s00024-015-1133-7}{doi: 10.1007/s00024-015-1133-7}
-#' @seealso \code{beta.mle}; \code{efmd.sim}; \code{mc.val}
-efmd.pdf <- function(m, theta) {
-  indcomplete <- which(m >= theta$mc)
-  n.incomplete <- exp((theta$kappa - theta$beta) * (m[-indcomplete] - theta$mc))
-  n.complete <- exp(-theta$beta * (m[indcomplete] - theta$mc))
-  f.angular <- c(n.incomplete, n.complete)
-  c <- 1 / (1 / (theta$kappa - theta$beta) + 1 / theta$beta)
-  return(c * f.angular)
-}
-
 #' Simulation of the Elemental FMD
 #'
 #' Simulate the elemental earthquake frequency magnitude distribution (eFMD) by
@@ -282,7 +250,7 @@ efmd.pdf <- function(m, theta) {
 #' @references Mignan, A., Chen, C.-C. (2016), The Spatial Scale of Detected Seismicity,
 #' Pure Appl. Geophys., 173, 117-124,
 #' \href{https://link.springer.com/article/10.1007/s00024-015-1133-7}{doi: 10.1007/s00024-015-1133-7}
-#' @seealso \code{beta.mle}; \code{efmd.pdf}; \code{mc.val}
+#' @seealso \code{beta.mle}; \code{mc.val}
 #' @examples
 #' theta <- list(kappa = 3 * log(10), beta = log(10), mc = 2)
 #' m.sim <- efmd.sim(1e4, theta)
