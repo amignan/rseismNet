@@ -14,7 +14,7 @@ Authors@R: person("Arnaud", "Mignan", email = "arnaudmignan0@gmail.com", role = 
 URL: https://github.com/amignan/rseismNet
 BugReports: https://github.com/amignan/rseismNet/issues
 Encoding: UTF-8
-Imports:
+Suggests:
     geosphere
 LazyData: yes
 License: MIT
