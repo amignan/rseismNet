@@ -164,13 +164,17 @@ mc.geogr <- function(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL
                                                    seism$lat < grid$lat[i] + dbin / 2))
   }
   if (mapping == "circle.cst") {
-#    r <- sapply(1:grid.n, function(i) d.geogr2km(grid[i,], seism, method = dist.calc))
+#   r <- sapply(1:grid.n, function(i) d.geogr2km(grid[i,], seism, method = dist.calc))
+#   sapply not used to avoid reaching virtual memory limit for very large matrices
     r <- array(NA, dim = c(nrow(seism), grid.n))
     for(i in 1:grid.n) r[,i] <- d.geogr2km(grid[i,], seism, method = dist.calc)
     ind.cell <- sapply(1:grid.n, function(i) which(r[,i] <= R))
   }
   if (mapping == "circle.opt") {
-    r <- sapply(1:grid.n, function(i) d.geogr2km(grid[i,], seism, method = dist.calc))
+    #   r <- sapply(1:grid.n, function(i) d.geogr2km(grid[i,], seism, method = dist.calc))
+    #   sapply not used to avoid reaching virtual memory limit for very large matrices
+    r <- array(NA, dim = c(nrow(seism), grid.n))
+    for(i in 1:grid.n) r[,i] <- d.geogr2km(grid[i,], seism, method = dist.calc)
     d <- sapply(1:grid.n, function(i) d.geogr2km(grid[i,], stations, method = dist.calc))
 
     d.kth <- sapply(1:grid.n, function(i) sort(d[,i])[kth])
