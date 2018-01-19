@@ -1,5 +1,6 @@
 # rseismNet R Package
 Earthquake Frequency-Magnitude Distribution & Network Statistics
+
 A suite of statistical functions to describe the earthquake frequency
     magnitude distribution (FMD) statistics. This R package is based on the 2 following 
     rules: (1) the complete FMD side (m>=mc) is governed by the Gutenberg-Richter law 
