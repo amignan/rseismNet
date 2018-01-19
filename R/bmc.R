@@ -1,3 +1,40 @@
+#' Distance between Geographical Points
+#'
+#' Calculate the distance d (in kilometers) between two geographical points or between one
+#' geographical point and a vector of geographical points.
+#'
+#' The \code{method = "fast"} assumes that the surface is flat. The
+#' \code{method = "haversine"}, slower, calculates the haversine distance by using the
+#' function \code{geosphere::distHaversine}. For regional earthquake catalogues, the error
+#' of the fast method is insignificant.
+#'
+#' @param pt.ref a list of 2 parameters:
+#' * \code{lon} the reference location longitude
+#' * \code{lat} the reference location latitude
+#' @param pt.list a list or data frame of 2 parameters:
+#' * \code{lon} the other location longitude(s)
+#' * \code{lat} the other location latitude(s)
+#' @param method the method to be used to evaluate d: \code{"fast"} or \code{"haversine"}
+#' (see Details)
+#' @return the value(s) of the distance d between \code{pt.ref} and \code{pt.list}.
+d.geogr2km <- function(pt.ref, pt.list, method) {
+  if(method == "fast") {
+    rad_earth <- 6378.1   #km
+    lat_km <- rad_earth*pi/180
+    lon_km <- rad_earth*cos(pt.ref$lat*pi/180)*pi/180
+    d <- sqrt(((pt.ref$lon - pt.list$lon) * lon_km) ^ 2 +
+              ((pt.ref$lat - pt.list$lat) * lat_km) ^ 2)
+  }
+  if(method == "haversine") {
+    pt1.mat <- matrix(c(pt.ref$lon, pt.ref$lat), nrow = 1, ncol = 2)
+    pt2.mat <- matrix(c(pt.list$lon, pt.list$lat), nrow = nrow(pt.list), ncol = 2)
+    d_m <- geosphere::distHaversine(pt1.mat, pt2.mat)
+    d <- d_m*1e-3
+  }
+  return(d)
+}
+
+
 #' Completeness Magnitude Mapping
 #'
 #' Map the completeness magnitude \out{m<sub>c</sub>} for a seismicity data
@@ -57,6 +94,8 @@
 #' * \code{kth}   the \out{k<sup>th</sup>} nearest seismic station used for
 #' distance calculation
 #' * \code{support} the information supporting the prior model
+#' @param dist.calc the method to be used to evaluate distances (if not provided,
+#' \code{dist.calc = "fast"}; read Details of function \code{d.geogr2km})
 #' @param n.bootstrap the number of bootstraps (if not provided, \code{n.bootstrap = 0})
 #' @return The data frame of 4 parameters:
 #' * \code{lon} the longitude of the cell center
@@ -67,7 +106,7 @@
 #' Bayesian Estimation of the Spatially Varying Completeness Magnitude of Earthquake
 #' Catalogs, Bull. Seismol. Soc. Am., 101, 1371-1385,
 #' \href{https://pubs.geoscienceworld.org/bssa/article-lookup/101/3/1371}{doi: 10.1785/0120100223}
-#' @seealso \code{bmc.prior}; \code{bmc.prior.default}; \code{mc.val}
+#' @seealso \code{bmc.prior}; \code{bmc.prior.default}; \code{d.geogr2km}; \code{mc.val}
 #' @examples
 #' # download the Southern California relocated catalogue of Hauksson et al. (2012)
 #' url <- "http://service.scedc.caltech.edu/ftp/catalogs/"
@@ -108,7 +147,7 @@
 #' mc.opt <- mc.geogr(seism, "mode", "circle.opt", dbin = 0.1, stations = stations)
 #' image(matrix(mc.opt$mc.obs, nrow=length(unique(mc.opt$lon)), ncol=length(unique(mc.opt$lat))))
 mc.geogr <- function(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL, nmin = NULL,
-                     R = 30, stations = NULL, kth = 4, params = NULL, n.bootstrap = 0) {
+  R = 30, stations = NULL, kth = 4, params = NULL, dist.calc = "fast", n.bootstrap = 0) {
   if(is.null(box)) box <- c(floor(min(seism$lon)), ceiling(max(seism$lon)),
                             floor(min(seism$lat)), ceiling(max(seism$lat)))
   if(is.null(dbin)) dbin <- (box[2]-box[1])/10
@@ -125,19 +164,14 @@ mc.geogr <- function(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL
                                                    seism$lat < grid$lat[i] + dbin / 2))
   }
   if (mapping == "circle.cst") {
-    pt.grid <- matrix(c(grid$lon, grid$lat), nrow = grid.n, ncol = 2)
-    pt.seism <- matrix(c(seism$lon, seism$lat), nrow = nrow(seism), ncol = 2)
-    r_m <- sapply(1:grid.n, function(i) geosphere::distHaversine(pt.grid[i,], pt.seism))
-    ind.cell <- sapply(1:grid.n, function(i) which(r_m[,i] * 1e-3 <= R))
+    r <- sapply(1:grid.n, function(i) d.geogr2km(grid[i,], seism, method = dist.calc))
+    ind.cell <- sapply(1:grid.n, function(i) which(r[,i] <= R))
   }
   if (mapping == "circle.opt") {
-    sta.n <- nrow(stations)
-    pt.grid <- matrix(c(grid$lon, grid$lat), nrow = grid.n, ncol = 2)
-    pt.sta <- matrix(c(stations$lon, stations$lat), nrow = sta.n, ncol = 2)
-    pt.seism <- matrix(c(seism$lon, seism$lat), nrow = nrow(seism), ncol = 2)
-    r_m <- sapply(1:grid.n, function(i) geosphere::distHaversine(pt.grid[i, ], pt.seism))
-    d_m <- sapply(1:grid.n, function(i) geosphere::distHaversine(pt.grid[i, ], pt.sta))
-    d.kth <- sapply(1:grid.n, function(i) sort(d_m[,i])[kth] * 1e-3)  # in km
+    r <- sapply(1:grid.n, function(i) d.geogr2km(grid[i,], seism, method = dist.calc))
+    d <- sapply(1:grid.n, function(i) d.geogr2km(grid[i,], stations, method = dist.calc))
+
+    d.kth <- sapply(1:grid.n, function(i) sort(d[,i])[kth])
     if(is.null(params)) {
       params <- bmc.prior.default(kth)
     }
@@ -147,7 +181,7 @@ mc.geogr <- function(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL
     R <- (dhigh-dlow)/2
     Rmin <- sqrt(2) * dbin / 2 * 111
     R[which(R <= Rmin)] <- Rmin
-    ind.cell <- sapply(1:grid.n, function(i) which(r_m[,i] * 1e-3 <= R))
+    ind.cell <- sapply(1:grid.n, function(i) which(r[,i] <= R))
   }
 
   if(n.bootstrap > 0) {
@@ -255,13 +289,15 @@ bmc.prior.default <- function(kth) {
 #' calculation (if not provided, \code{kth = 4})
 #' @param support the information supporting the prior model: \code{"calibrated"} or
 #' \code{"data"} (if not provided, \code{support = "calibrated"} - see Details)
-#' @return A list of
-#' @return the BMC prior model parameter list
+#' @param dist.calc the method to be used to evaluate distances (if not provided,
+#' \code{dist.calc = "fast"}; read Details of function \code{d.geogr2km})
+#' @return A list of:
+#' @return the BMC prior model parameter list:
 #' * \code{c1}, \code{c2}, \code{c3} the empirical parameters
 #' * \code{sigma} the standard deviation
 #' * \code{kth}   the \out{k<sup>th</sup>} nearest seismic station used for distance calculation
 #' * \code{support}   the information supporting the prior model
-#' @return the input data frame
+#' @return the input data frame:
 #' * \code{mc}   the completeness magnitude value per cell
 #' * \code{d.kth}   the distance to the \out{k<sup>th</sup>} nearest seismic station per
 #' cell (in km)
@@ -277,7 +313,7 @@ bmc.prior.default <- function(kth) {
 #' Performance in Greece (1964-2013): Spatiotemporal Evolution of the Completeness Magnitude,
 #' Seismol. Res. Lett., 85, 657-667
 #' \href{https://pubs.geoscienceworld.org/ssa/srl/article-abstract/85/3/657/315375/fifty-years-of-seismic-network-performance-in}{doi: 10.1785/0220130209}
-#' @seealso \code{bmc}; \code{bmc.prior.default}; \code{mc.geogr}
+#' @seealso \code{bmc}; \code{bmc.prior.default}; \code{d.geogr2km}; \code{mc.geogr}
 #' @examples
 #' # download the Southern California relocated catalogue of Hauksson et al. (2012)
 #' url <- "http://service.scedc.caltech.edu/ftp/catalogs/"
@@ -315,14 +351,10 @@ bmc.prior.default <- function(kth) {
 #' plot(data$d.kth, data$mc.obs)
 #' lines(di, params.cal$c1*di^params.cal$c2+params.cal$c3, col="orange")
 #' lines(di, params.dat$c1*di^params.dat$c2+params.dat$c3, col="red")
-bmc.prior <- function(mc.obs, stations, kth = 4, support = "calibrated") {
+bmc.prior <- function(mc.obs, stations, kth = 4, support = "calibrated", dist.calc = "fast") {
   grid.n <- nrow(mc.obs)
-  sta.n <- nrow(stations)
-  pt.grid <- matrix(c(mc.obs$lon, mc.obs$lat), nrow=grid.n, ncol=2)
-  pt.sta <- matrix(c(stations$lon, stations$lat), nrow=sta.n, ncol=2)
-
-  d_m <- sapply(1:grid.n, function(i) geosphere::distHaversine(pt.grid[i, ], pt.sta))
-  d.kth <- sapply(1:grid.n, function(i) sort(d_m[,i])[kth] * 1e-3)  # in km
+  d <- sapply(1:grid.n, function(i) d.geogr2km(grid[i,], stations, method = dist.calc))
+  d.kth <- sapply(1:grid.n, function(i) sort(d[,i])[kth])
   dat2fit <- data.frame(d = d.kth, mc = mc.obs$mc)
 
   if(support == "calibrated") {
