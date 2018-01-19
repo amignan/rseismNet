@@ -506,6 +506,8 @@ bmc.bayes <- function(mc.obs, mc.pred, sigma.pred) {
 #' the map is made of 10 longitudinal cells based on \code{box})
 #' @param kth the \out{k<sup>th</sup>} nearest seismic station used for distance calculation
 #' (if not provided, \code{kth = 4})
+#' @param dist.calc the method to be used to evaluate distances (if not provided,
+#' \code{dist.calc = "fast"}; read Details of function \code{d.geogr2km})
 #' @return The data frame of 8 parameters:
 #' * \code{lon} the longitude of the cell center
 #' * \code{lat} the latitude of the cell center
@@ -576,11 +578,13 @@ bmc.bayes <- function(mc.obs, mc.pred, sigma.pred) {
 #' image(matrix(res$sigma.obs, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))))
 #' image(matrix(res$sigma.pred, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))))
 #' image(matrix(res$sigma.post, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))))
-bmc <- function(seism, stations, support = "fast", mbin = 0.1, box = NULL, dbin = NULL, kth = 4) {
+bmc <- function(seism, stations, support = "fast", mbin = 0.1, box = NULL, dbin = NULL,
+                kth = 4, dist.calc = "fast") {
   if(support == "fast") {
     cat("Compute observed mc map (optimized)", "\n")
     mc.obs <- mc.geogr(seism, "mode", "circle.opt", mbin = mbin, box = box, dbin = dbin,
-                       nmin = 4, R = NULL, stations = stations, kth = kth, n.bootstrap = 200)
+                       nmin = 4, R = NULL, stations = stations, kth = kth,
+                       dist.calc = dist.calc, n.bootstrap = 200)
 
     cat("Compute predicted mc map (calibrated default prior model)", "\n")
     prior <- bmc.prior(mc.obs, stations, kth = kth, support = "calibrated")
