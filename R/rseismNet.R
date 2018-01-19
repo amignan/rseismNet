@@ -10,9 +10,9 @@
 #' using the Bayesian Magnitude of Completeness (BMC) method.
 #'
 #' @section rseismNet basic functions:
-#' beta.mle, bfmd.pdf, bfmd.sim, efmd.pdf, efmd.sim, fmd, mc.val
+#' beta.mle, bfmd.pdf, bfmd.sim, efmd.sim, fmd, mc.val
 #' @section rseismNet mapping functions:
-#' bmc, bmc.bayes, bmc.prior, bmc.prior.default, mc.geogr
+#' bmc, bmc.bayes, bmc.prior, bmc.prior.default, d.geogr2km, mc.geogr
 #' @references Aki, K. (1965), Maximum likelihood estimate of b in the formula log N =
 #' a - bM and its confidence limits, Bull. Earthquake Res. Inst. Univ. Tokyo, 43, 237-239
 #' @references Amorese, D. (2007), Applying a Change-Point Detecion Method on
