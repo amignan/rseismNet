@@ -2,7 +2,7 @@
 title: "Introduction to rseismNet"
 author: "Arnaud Mignan"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: rmarkdown::github_document
 vignette: >
   %\VignetteIndexEntry{Introduction to rseismNet}
   %\VignetteEngine{knitr::rmarkdown}
@@ -50,13 +50,17 @@ The vector `m_curved` is drawn from the FMD model first proposed by Ringdal (197
 ```{r, fig.show='hold'}
 mdistr_curved <- rseismNet::fmd(m_curved)
 mdistr_angular <- rseismNet::fmd(m_angular)
-plot(mdistr_curved$mi, mdistr_curved$Ni, log = "y")
+plot(mdistr_curved$mi, mdistr_curved$Ni, log = "y", col = "grey")
 points(mdistr_curved$mi, mdistr_curved$ni)
-plot(mdistr_angular$mi, mdistr_angular$Ni, log = "y")
+legend("topright", c("cumulative", "non-cumul."), col = c("grey", "black"), lty = "blank", 
+       pch = 1, cex = 0.5)
+plot(mdistr_angular$mi, mdistr_angular$Ni, log = "y", col = "grey")
 points(mdistr_angular$mi, mdistr_angular$ni)
+legend("topright", c("cumulative", "non-cumul."), col = c("grey", "black"), lty = "blank", 
+       pch = 1, cex = 0.5)
 ```
 
-The first model leads to a curved FMD shape in the log-lin space, while the second one leads to an angular shape. Both models are of the form $n(m) \propto exp(-\beta m)q(m)$, the product of the theoretical Gutenberg-Richter law (with slope $\beta = b\log(10)$) and a detection function $q(m)$, which gives the probability of a given magnitude $m$ being observed. In the first case, $q(m) = \mathcal{N}(\mu,\,\sigma^2)$, the cumulative Normal distribution, and in the second, $q(m < m_c) = exp(\kappa(m-m_c))$, an exponential function with detection parameter $\kappa > \beta$ and $q(m \geq m_c) = 1$. To learn more about the FMD shape ontology and where a given model applies, read Mignan (2012) and Mignan & Chen (2016). For $q(m)$ defined as a Gamma distribution, see Kijko & Smit (2017).
+The first model leads to a curved FMD shape in the log-lin space, while the second one leads to an angular shape. Both models are of the form $n(m) \propto exp(-\beta m)q(m)$, the product of the theoretical Gutenberg-Richter law with slope $\beta = b\log(10)$ (Gutenberg & Richter, 1944) and a detection function $q(m)$, which gives the probability of a given magnitude $m$ being observed. In the first case, $q(m) = \mathcal{N}(\mu,\,\sigma^2)$, the cumulative Normal distribution, and in the second, $q(m < m_c) = exp(\kappa(m-m_c))$, an exponential function with detection parameter $\kappa > \beta$ and $q(m \geq m_c) = 1$. To learn more about the FMD shape ontology and where a given model applies, read Mignan (2012) and Mignan & Chen (2016). For $q(m)$ defined as a Gamma distribution, see Kijko & Smit (2017).
 
 Then the completeness magnitude $m_c$ is defined as the magnitude $m$ at which $q(m)$ tends to 1 (i.e., when all earthquakes are detected). For an angular FMD, $m_c$ is simply the mode of the distribution. For a curved FMD, $m_c$ is ambiguous and represented as $\mu+n\sigma$, but in practice it is approximated as the minimum magnitude above which a straight line is observed in log-lin space (i.e., above which the Gutenberg-Richter law is valid). Let us now evaluate $m_c$ by using three different methods, as defined in the function `mc.val`:
 
@@ -65,15 +69,15 @@ mc_mode_curved <- rseismNet::mc.val(m_curved, "mode")
 mc_mbass_curved <- rseismNet::mc.val(m_curved, "mbass")
 mc_gft_curved <- rseismNet::mc.val(m_curved, "gft")
 plot(mdistr_curved$mi, mdistr_curved$ni, log = "y")
-abline(v = c(mc_mode_curved, mc_mbass_curved, mc_gft_curved), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotted"))
-legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotted"), cex = 0.5)
+abline(v = c(mc_mode_curved, mc_mbass_curved, mc_gft_curved), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
+legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"), cex = 0.5)
 
 mc_mode_angular <- rseismNet::mc.val(m_angular, "mode")
 mc_mbass_angular <- rseismNet::mc.val(m_angular, "mbass")
 mc_gft_angular <- rseismNet::mc.val(m_angular, "gft")
 plot(mdistr_angular$mi, mdistr_angular$ni, log = "y")
-abline(v = c(mc_mode_angular, mc_mbass_angular, mc_gft_angular), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotted"))
-legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotted"), cex = 0.5)
+abline(v = c(mc_mode_angular, mc_mbass_angular, mc_gft_angular), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
+legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"), cex = 0.5)
 ```
 
 As of now, three FMD-based $m_c$ estimation methods are available in the `mc.val` function: 
@@ -82,7 +86,7 @@ As of now, three FMD-based $m_c$ estimation methods are available in the `mc.val
 - `mbass` ("median-based analysis of the segment slope") determines the main breakpoints of the earthquake FMD. $m_c$ is defined as the change point that corresponds to the smallest probability of making an error when rejecting the null-hypothesis in a Wilcoxon-Mann-Whitney test (Amorese, 2007).
 - `gft` estimates the goodness-of-fit between the cumulative number of earthquakes observed and predicted by the Gutenberg-Richter law. $m_c$ is defined as the lowest magnitude bin at which a fixed threshold $R$ is first met. $R$ is defined as a normalized absolute difference, fixed to 0.95. If the threshold is not reached, 0.90 is used. If again the threshold is not reached, the `mode` is used instead (Wiemer & Wyss, 2000).
 
-Both the `mode` and `mbass` methods are non-parametric while `gft` depends on the fitting of the Gutenberg-Richter law. Let us now use the function `beta.mle` to calculate the Maximum Likelihood Estimate (MLE) of $\beta$ and check whether the obtained $m_c$ estimates are correct (knowing that `theta$beta = log(10)` was fixed for the simulations).
+Both the `mode` and `mbass` methods are non-parametric while `gft` depends on the fitting of the Gutenberg-Richter law. Let us now use the function `beta.mle` to calculate the Maximum Likelihood Estimate of $\beta$ (Aki, 1965) and check whether the obtained $m_c$ estimates are correct (knowing that `theta$beta = log(10)` was fixed for the simulations).
 
 Since all methods here give the correct $m_c$ estimate for the angular FMD case (with `theta$mc = 2`), we retrieve a reasonable estimate of $\beta$-value, with:
 
@@ -103,7 +107,7 @@ beta_mbass_curved <- rseismNet::beta.mle(m_curved, mc_mbass_curved)
 beta_gft_curved <- rseismNet::beta.mle(m_curved, mc_gft_curved)
 c(beta_mode_curved, beta_mbass_curved, beta_gft_curved) / log(10)
 plot(mdistr_curved$mi, mdistr_curved$ni, log = "y", col = "grey")
-abline(v = c(mc_mode_curved, mc_mbass_curved, mc_gft_curved), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotted"))
+abline(v = c(mc_mode_curved, mc_mbass_curved, mc_gft_curved), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
 abline(a = log10(mdistr_curved$ni[which(mdistr_curved$mi >= mc_mode_curved)[1]]) + 
        beta_mode_curved / log(10) * mc_mode_curved, b = -beta_mode_curved / log(10), 
        col = "orange")
@@ -112,8 +116,8 @@ abline(a = log10(mdistr_curved$ni[which(mdistr_curved$mi >= mc_mbass_curved)[1]]
        col = "red", lty = "dashed")
 abline(a = log10(mdistr_curved$ni[which(mdistr_curved$mi >= mc_gft_curved)[1]]) + 
        beta_gft_curved / log(10) * mc_gft_curved, b = -beta_gft_curved / log(10), 
-       col = "brown", lty = "dotted")
-legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotted"), cex = 0.5)
+       col = "brown", lty = "dotdash")
+legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"), cex = 0.5)
 ```
 
 The methods `mbass` and `gft` may also underestimate $m_c$, depending on the magnitude sample. To avoid this problem, it is recommended to estimate the properties of the $m_c$ estimator using some bootstrapping. A conservative approach consists then in using the $m_c$ average plus one to three standard deviations (note that a slight overestimation of $m_c$ is less problematic than an underestimation, although increased undersampling will increase uncertainty on $\beta$):
@@ -144,18 +148,36 @@ legend("bottomright", c("mbass", "gft"), col = c("red", "brown"), lty = "solid",
 
 It is important to note that there is no "silver bullet"" method to estimate $m_c$. Two recommendations can be given: (1) Always use a visual help to decide whether a method appears reasonable or not (as shown above); (2) Keep in mind that the result of a given method depends on the FMD shape, which may change for different data subsets (Mignan & Chen, 2016). For a general review of FMD-based $m_c$ estimation methods, see Mignan and Woessner (2012). For further comparisons of `mbass` and `gft`, see Mignan and Chouliaras (2014).
 
-## The Bayesian Magnitude of Completeness (BMC) method
+## The Bayesian Magnitude of Completeness (BMC) mapping method
 
-To be written.
+The following example makes use of all the mapping functions of rseismNet, which are listed in R/bmc.R. After showing various ways of mapping $m_c$ for a given earthquake catalogue, it describes the successive steps of the Bayesian Magnitude of Completeness (BMC) mapping method introduced by Mignan et al. (2011), which consists in computing an $m_c$ map that combines both observations and a seismic network prior. The BMC method has already been tested in a number of regional catalogues (Kraft et al., 2013; Mignan et al., 2013; Mignan and Chouliaras, 2014; Tormann et al., 2014; Panzera et al., 2017).
+
+What are the advantages of using the BMC method?
+
+- Fast FMD-based mapping approach;
+- Provides a trade-off between undersampling and over-smoothing by optimizing the sample size based on the seismic network density;
+- The optimized $m_c$ mapping minimizes $m_c$ heterogeneities in space, leading to more stable local $m_c$ estimates;
+- Takes advantage of Bayes Theorem to combine data and model, weighting them according to their relative uncertainties;
+- The produced $m_c$ maps show no gaps, as the $m_c$ prior model is used wherever data is missing.
 
 
 ## References
 
+Aki, K. (1965), Maximum likelihood estimate of b in the formula log N = a - bM and its confidence limits, Bull. Earthquake Res. Inst. Univ. Tokyo, 43, 237-239
+
 Amorese, D. (2007), Applying a Change-Point Detecion Method on Frequency-Magnitude Distributions, Bull. Seismol. Soc. Am., 97, 1742-1749, doi: 10.1785/0120060181
+
+Gutenberg, B., Richter, C.F. (1944), Frequency of earthquakes in California, Bull. Seismol. Soc. Am., 34, 184-188
+
+Kraft, T., Mignan, A., Giardini, D. (2013), Optimization of a large-scale microseismic monitoring network in northern Switzerland, Geophys. J. Int., 195, 474-490, doi: 10.1093/gji/ggt225
+
+Mignan, A., Werner, M.J., Wiemer, S., Chen, C.-C., Wu, Y.-M. (2011), Bayesian Estimation of the Spatially Varying Completeness Magnitude of Earthquake Catalogs, Bull. Seismol. Soc. Am., 101, 1371-1385, doi: 10.1785/0120100223
 
 Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude distribution and completeness magnitude, J. Geophys. Res., 117, B08302, doi: 10.1029/2012JB009347
 
 Mignan, A., Woessner, J. (2012), Estimating the magnitude of completeness for earthquake catalogs, Community Online Resource for Statistical Seismicity Analysis, doi: 10.5078/corssa-00180805
+
+Mignan, A., Jiang, C., Zechar, J.D., Wiemer, S., Wu, Z., Huang, Z. (2013), Completeness of the Mainland China Earthquake Catalog and Implications for the Setup of the China Earthquake Forecast Texting Center, Bull. Seismol. Soc. Am., 103, 845-859, doi: 10.1785/0120120052
 
 Mignan, A., Chouliaras, G. (2014), Fifty Years of Seismic Network Performance in Greece (1964-2013): Spatiotemporal Evolution of the Completeness Magnitude, Seismol. Res. Lett., 85, 657-667 doi: 10.1785/0220130209
 
@@ -165,6 +187,10 @@ Ogata, Y., Katsura, K. (1993), Analysis of temporal and spatial heterogeneity of
 
 Ogata, Y., Katsura, K. (2006), Immediate and updated forecasting of aftershock hazard, Geophys. Res. Lett., 33, L10305, doi: 10.1029/2006GL025888
 
+Panzera, F., Mignan, A., Vogfjord, K.S. (2017), Spatiotemporal evolution of the completeness magnitude of the Icelandic earthquake catalogue from 1991 to 2013, J. Seismol., 21, 615-630, doi: 10.1007/s10950-016-9623-3
+
 Ringdal, F. (1975), On the estimation of seismic detection thresholds, Bull. Seismol. Soc. Am., 65, 1631-1642
+
+Tormann, T., Wiemer, S., Mignan, A. (2014), Systematic survey of high-resolution b value imaging along Californian faults: inference on asperities, J. Geophys. Res. Solid Earth, 119, 2029-2054, doi: 10.1002/2013JB010867
 
 Wiemer, S., Wyss, M. (2000), Minimum Magnitude of Completeness in Earthquake Catalogs: Examples from Alaska, the Western United States, and Japan, Bull. Seismol. Soc. Am., 90, 859-869
