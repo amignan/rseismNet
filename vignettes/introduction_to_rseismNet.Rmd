@@ -1,0 +1,141 @@
+---
+title: "Introduction to rseismNet"
+author: "Arnaud Mignan"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to rseismNet}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+The R package rseismNet provides a suite of statistical functions to describe the earthquake frequency magnitude distribution (FMD) statistics. This package is based on the 2 following rules: (1) the complete FMD side ($m \geq m_c$) is governed by the Gutenberg-Richter law and depends on the fault network properties; (2) the incomplete FMD part ($m < m_c$) is governed by a detection function and depends on the seismic network properties (with $m$ the earthquake magnitude and $m_c$ the completeness magnitude). rseismNet also implements the Bayesian Magnitude of Completeness (BMC) method, which uses a seismic network prior to map $m_c$.
+
+What rseismNet does:
+
+- Computes the FMD, $m_c$ and the slope of the Gutenberg-Richter law $\beta$ for any seismicity dataset;
+- Maps $m_c$ using different methods;
+- Generates the BMC prior and BMC maps (observed, predicted, posterior) of $m_c$ and related uncertainties;
+- Simulates seismicity for two FMD shapes (angular and curved).
+
+What rseismNet needs:
+
+- An earthquake magnitude vector, which can be simulated directly in rseismNet;
+- For $m_c$ mapping, an earthquake catalogue with at least longitudes, latitudes and magnitudes;
+- For the BMC method, the station coordinates of the seismic nework from which the earthquake catalogue was generated.
+
+## Basic functions
+
+The basic functions of rseismNet are listed in `R/fmd.R`. The following example makes use of all these functions.
+
+Let us first generate two earthquake magnitude vectors drawn from two different FMD models.
+
+```{r, fig.show='hold'}
+    n_eq <- 1e4
+    theta_curved <- list(beta = log(10), mu = 2, sigma = 0.5)
+    theta_angular <- list(kappa = 3 * log(10), beta = log(10), mc = 2)
+    m_curved <- rseismNet::bfmd.sim(n_eq, theta_curved)
+    m_angular <- rseismNet::efmd.sim(n_eq, theta_angular)
+```
+
+The vector `m_curved` is drawn from the FMD model first proposed by Ringdal (1975) and further developed by Ogata & Katsura (1993; 2006) by using the function `bfmd.sim` ("b" for bulk). The vector `m_angular` is drawn from the FMD model proposed by Mignan (2012) by using the function `efmd.sim` ("e" for elemental). The difference between the two models becomes clear once their FMD (computed with the function `fmd`) is plotted:
+
+```{r, fig.show='hold'}
+mdistr_curved <- rseismNet::fmd(m_curved)
+mdistr_angular <- rseismNet::fmd(m_angular)
+plot(mdistr_curved$mi, mdistr_curved$ni, log = "y")
+plot(mdistr_angular$mi, mdistr_angular$ni, log = "y")
+```
+
+The first model leads to a curved FMD shape in the log-lin space, while the second one leads to an angular shape. Both models are of the form $n(m) \propto exp(-\beta m)q(m)$, the product of the theoretical Gutenberg-Richter law (with slope $\beta = b\log(10)$) and a detection function $q(m)$, which gives the probability of a given magnitude $m$ being observed. In the first case, $q(m) = \mathcal{N}(\mu,\,\sigma^2)$, the cumulative Normal distribution, and in the second, $q(m < m_c) = exp(\kappa(m-m_c))$, an exponential function with detection parameter $\kappa > \beta$ and $q(m \geq m_c) = 1$. To learn more about the FMD shape ontology and where a given model applies, read Mignan (2012) and Mignan & Chen (2016). For $q(m)$ defined as a Gamma distribution, see Kijko & Smit (2017).
+
+Then the completeness magnitude $m_c$ is defined as the magnitude $m$ at which $q(m)$ tends to 1 (i.e., when all earthquakes are detected). For an angular FMD, $m_c$ is simply the mode of the distribution. For a curved FMD, $m_c$ is ambiguous and represented as $\mu+n\sigma$, but in practice it is approximated as the minimum magnitude above which a straight line is observed in log-lin space (i.e., above which the Gutenberg-Richter law is valid). Let us now evaluate $m_c$ by using three different methods, as defined in the function `mc.val`:
+
+```{r, fig.show='hold'}
+mc_mode_curved <- rseismNet::mc.val(m_curved, "mode")
+mc_mbass_curved <- rseismNet::mc.val(m_curved, "mbass")
+mc_gft_curved <- rseismNet::mc.val(m_curved, "gft")
+plot(mdistr_curved$mi, mdistr_curved$ni, log = "y")
+abline(v = c(mc_mode_curved, mc_mbass_curved, mc_gft_curved), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotted"))
+legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotted"), cex = 0.5)
+
+mc_mode_angular <- rseismNet::mc.val(m_angular, "mode")
+mc_mbass_angular <- rseismNet::mc.val(m_angular, "mbass")
+mc_gft_angular <- rseismNet::mc.val(m_angular, "gft")
+plot(mdistr_angular$mi, mdistr_angular$ni, log = "y")
+abline(v = c(mc_mode_angular, mc_mbass_angular, mc_gft_angular), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotted"))
+legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotted"), cex = 0.5)
+```
+
+As of now, three FMD-based $m_c$ estimation methods are available in the `mc.val` function: 
+
+- `mode` calculates the mode of the $m$ vector;
+- `mbass` ("median-based analysis of the segment slope") determines the main breakpoints of the earthquake FMD. $m_c$ is defined as the change point that corresponds to the smallest probability of making an error when rejecting the null-hypothesis in a Wilcoxon-Mann-Whitney test (Amorese, 2007).
+- `gft` estimates the goodness-of-fit between the cumulative number of earthquakes observed and predicted by the Gutenberg-Richter law. $m_c$ is defined as the lowest magnitude bin at which a fixed threshold $R$ is first met. $R$ is defined as a normalized absolute difference, fixed to 0.95. If the threshold is not reached, 0.90 is used. If again the threshold is not reached, the `mode` is used instead (Wiemer & Wyss, 2000).
+
+Both the `mode` and `mbass` methods are non-parametric while `gft` depends on the fitting of the Gutenberg-Richter law. Let us now use the function `beta.mle` to calculate the Maximum Likelihood Estimate (MLE) of $\beta$ and check whether the obtained $m_c$ estimates are correct (knowing that `theta$beta = log(10)` was fixed for the simulations).
+
+Since all methods here give the correct $m_c$ estimate for the angular FMD case (with `theta$mc = 2`), we retrieve a reasonable estimate of $\beta$-value, with:
+
+```{r, fig.show='hold'}
+beta_mode <- rseismNet::beta.mle(m_angular, mc_mode_angular)
+beta_mode / log(10)
+plot(mdistr_angular$mi, mdistr_angular$ni, log = "y")
+abline(v = mc_mode_angular, lty = "dotted", col = "red")
+abline(a = log10(mdistr_angular$ni[which(mdistr_angular$mi >= mc_mode_angular)[1]]) + 
+       beta_mode / log(10) * mc_mode_angular, b = -beta_mode / log(10), col = "red")
+```
+
+For a curved FMD however, the methods are likely to yield different $m_c$ estimates. The `mode` systematically underestimates it, leading in turn to an incorrect $\beta$-value:
+
+```{r, fig.show='hold'}
+beta_mode_curved <- rseismNet::beta.mle(m_curved, mc_mode_curved)
+beta_mbass_curved <- rseismNet::beta.mle(m_curved, mc_mbass_curved)
+beta_gft_curved <- rseismNet::beta.mle(m_curved, mc_gft_curved)
+c(beta_mode_curved, beta_mbass_curved, beta_gft_curved) / log(10)
+plot(mdistr_curved$mi, mdistr_curved$ni, log = "y", col = "grey")
+abline(v = c(mc_mode_curved, mc_mbass_curved, mc_gft_curved), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotted"))
+abline(a = log10(mdistr_curved$ni[which(mdistr_curved$mi >= mc_mode_curved)[1]]) + 
+       beta_mode_curved / log(10) * mc_mode_curved, b = -beta_mode_curved / log(10), 
+       col = "orange")
+abline(a = log10(mdistr_curved$ni[which(mdistr_curved$mi >= mc_mbass_curved)[1]]) + 
+       beta_mbass_curved / log(10) * mc_mbass_curved, b = -beta_mbass_curved / log(10), 
+       col = "red", lty = "dashed")
+abline(a = log10(mdistr_curved$ni[which(mdistr_curved$mi >= mc_gft_curved)[1]]) + 
+       beta_gft_curved / log(10) * mc_gft_curved, b = -beta_gft_curved / log(10), 
+       col = "brown", lty = "dotted")
+```
+
+The methods `mbass` and `gft` may also underestimate $m_c$, depending on the magnitude sample. To avoid this problem, it is recommended to estimate the properties of the $m_c$ estimator using some bootstrapping. A conservative approach consists then in using the $m_c$ average plus one to three standard deviations (note that a slight overestimation of $m_c$ is less problematic than an underestimation, although increased undersampling will increase uncertainty on $\beta$):
+
+```{r, fig.show='hold'}
+n_sample <- 100
+mc_bootstrap <- sapply(1:n_sample, function(i) 
+  sample(rseismNet::mc.val(m_curved, "gft"), replace = T))
+mean(mc_bootstrap, na.rm = T)
+sd(mc_bootstrap, na.rm = T)
+
+stddev <- seq(0,3,0.1)
+mci <- round(mean(mc_bootstrap, na.rm = T) + stddev * sd(mc_bootstrap, na.rm = T), digits = 1)
+beta_diffmc <- sapply(1:length(stddev), function(i) rseismNet::beta.mle(m_curved, mci[i]))
+plot(stddev, beta_diffmc, type = "b")
+abline(h = theta_curved$beta)
+```
+
+It is important to note that there is no "silver bullet"" method to estimate $m_c$. Two recommendations can be given: (1) Always use a visual help to decide whether a method appears reasonable or not (as shown above); (2) Keep in mind that the result of a given method depends on the FMD shape, which may change for different data subsets (Mignan & Chen, 2016). For a general review of FMD-based $m_c$ estimation methods, see Mignan and Woessner (2012). For further comparisons of `mbass` and `gft`, see Mignan and Chouliaras (2014).
+
+## The Bayesian Magnitude of Completeness (BMC) method
+
+To be written.
+
+
+## References
+
+To be written.
