@@ -52,5 +52,5 @@ Pure Appl. Geophys., 173, 117-124,
 \href{https://link.springer.com/article/10.1007/s00024-015-1133-7}{doi: 10.1007/s00024-015-1133-7}
 }
 \seealso{
-\code{beta.mle}; \code{efmd.pdf}; \code{mc.val}
+\code{beta.mle}; \code{mc.val}
 }

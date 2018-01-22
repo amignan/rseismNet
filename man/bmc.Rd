@@ -5,7 +5,7 @@
 \title{BMC Wrapper}
 \usage{
 bmc(seism, stations, support = "fast", mbin = 0.1, box = NULL,
-  dbin = NULL, kth = 4)
+  dbin = NULL, kth = 4, dist.calc = "fast")
 }
 \arguments{
 \item{seism}{an earthquake catalog data frame of parameters:
@@ -37,6 +37,9 @@ the map is made of 10 longitudinal cells based on \code{box})}
 
 \item{kth}{the \out{k<sup>th</sup>} nearest seismic station used for distance calculation
 (if not provided, \code{kth = 4})}
+
+\item{dist.calc}{the method to be used to evaluate distances (if not provided,
+\code{dist.calc = "fast"}; read Details of function \code{d.geogr2km})}
 }
 \value{
 The data frame of 8 parameters:

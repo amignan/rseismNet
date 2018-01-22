@@ -28,9 +28,9 @@ calculation (if not provided, \code{kth = 4})}
 \code{dist.calc = "fast"}; read Details of function \code{d.geogr2km})}
 }
 \value{
-A list of
+A list of:
 
-the BMC prior model parameter list
+the BMC prior model parameter list:
 \itemize{
 \item \code{c1}, \code{c2}, \code{c3} the empirical parameters
 \item \code{sigma} the standard deviation
@@ -38,7 +38,7 @@ the BMC prior model parameter list
 \item \code{support}   the information supporting the prior model
 }
 
-the input data frame
+the input data frame:
 \itemize{
 \item \code{mc}   the completeness magnitude value per cell
 \item \code{d.kth}   the distance to the \out{k<sup>th</sup>} nearest seismic station per
