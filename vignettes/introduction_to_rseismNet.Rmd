@@ -2,7 +2,9 @@
 title: "Introduction to rseismNet"
 author: "Arnaud Mignan"
 date: "`r Sys.Date()`"
-output: rmarkdown::github_document
+output:
+  html_document:
+    keep_md: true
 vignette: >
   %\VignetteIndexEntry{Introduction to rseismNet}
   %\VignetteEngine{knitr::rmarkdown}
