@@ -15,8 +15,11 @@ URL: https://github.com/amignan/rseismNet
 BugReports: https://github.com/amignan/rseismNet/issues
 Encoding: UTF-8
 Suggests:
-    geosphere
+    geosphere,
+    knitr,
+    rmarkdown
 LazyData: yes
 License: MIT + file LICENSE
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.0.1
+VignetteBuilder: knitr
