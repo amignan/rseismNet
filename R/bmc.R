@@ -359,7 +359,7 @@ bmc.prior.default <- function(kth) {
 #' lines(di, params.dat$c1*di^params.dat$c2+params.dat$c3, col="red")
 bmc.prior <- function(mc.obs, stations, kth = 4, support = "calibrated", dist.calc = "fast") {
   grid.n <- nrow(mc.obs)
-  d <- sapply(1:grid.n, function(i) d.geogr2km(grid[i,], stations, method = dist.calc))
+  d <- sapply(1:grid.n, function(i) d.geogr2km(mc.obs[i,], stations, method = dist.calc))
   d.kth <- sapply(1:grid.n, function(i) sort(d[,i])[kth])
   dat2fit <- data.frame(d = d.kth, mc = mc.obs$mc)
 
