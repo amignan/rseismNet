@@ -17,6 +17,7 @@
 #' @param method the method to be used to evaluate d: \code{"fast"} or \code{"haversine"}
 #' (see Details)
 #' @return the value(s) of the distance d between \code{pt.ref} and \code{pt.list}.
+#' @export
 d.geogr2km <- function(pt.ref, pt.list, method) {
   if(method == "fast") {
     rad_earth <- 6378.1   #km
@@ -146,6 +147,7 @@ d.geogr2km <- function(pt.ref, pt.list, method) {
 #' # (minimizes mc heterogeneities while maximizing sample size)
 #' mc.opt <- mc.geogr(seism, "mode", "circle.opt", dbin = 0.1, stations = stations)
 #' image(matrix(mc.opt$mc.obs, nrow=length(unique(mc.opt$lon)), ncol=length(unique(mc.opt$lat))))
+#' @export
 mc.geogr <- function(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL, nmin = NULL,
   R = 30, stations = NULL, kth = 4, params = NULL, dist.calc = "fast", n.bootstrap = 0) {
   if(is.null(box)) box <- c(floor(min(seism$lon)), ceiling(max(seism$lon)),
@@ -257,6 +259,7 @@ mc.geogr <- function(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL
 #' image(unique(grid$lon), unique(grid$lat),
 #'   matrix(mc.pred, nrow=length(unique(grid$lon)), ncol=length(unique(grid$lat))))
 #' points(stations, pch = 2)
+#' @export
 bmc.prior.default <- function(kth) {
   params <- NULL
   if(kth == 3) params <- list(c1 = 4.81, c2 = 0.0883, c3 = -4.36,
@@ -357,6 +360,7 @@ bmc.prior.default <- function(kth) {
 #' plot(data$d.kth, data$mc.obs)
 #' lines(di, params.cal$c1*di^params.cal$c2+params.cal$c3, col="orange")
 #' lines(di, params.dat$c1*di^params.dat$c2+params.dat$c3, col="red")
+#' @export
 bmc.prior <- function(mc.obs, stations, kth = 4, support = "calibrated", dist.calc = "fast") {
   grid.n <- nrow(mc.obs)
   d <- sapply(1:grid.n, function(i) d.geogr2km(mc.obs[i,], stations, method = dist.calc))
@@ -455,6 +459,7 @@ bmc.prior <- function(mc.obs, stations, kth = 4, support = "calibrated", dist.ca
 #' image(matrix(res$sigma.obs, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))))
 #' image(matrix(res$sigma.pred, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))))
 #' image(matrix(res$sigma.post, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))))
+#' @export
 bmc.bayes <- function(mc.obs, mc.pred, sigma.pred) {
   grid.n <- nrow(mc.obs)
   mc.post <- sapply(1:grid.n, function(i) (mc.pred[i] * mc.obs$sigma.obs[i] ^ 2 +
@@ -578,6 +583,7 @@ bmc.bayes <- function(mc.obs, mc.pred, sigma.pred) {
 #' image(matrix(res$sigma.obs, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))))
 #' image(matrix(res$sigma.pred, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))))
 #' image(matrix(res$sigma.post, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))))
+#' @export
 bmc <- function(seism, stations, support = "fast", mbin = 0.1, box = NULL, dbin = NULL,
                 kth = 4, dist.calc = "fast") {
   if(support == "fast") {

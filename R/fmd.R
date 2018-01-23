@@ -19,6 +19,7 @@
 #' m <- mc - mbin / 2 + rexp(1e3, beta)
 #' mdistr <- fmd(m)
 #' View(mdistr)
+#' @export
 fmd <- function(m, mbin = 0.1) {
   mmin <- min(m, na.rm = T)
   mmax <- max(m, na.rm = T)
@@ -112,6 +113,7 @@ fmd <- function(m, mbin = 0.1) {
 #' plot(mdistr$mi, mdistr$Ni, log = "y")
 #' points(mdistr$mi, mdistr$ni)
 #' abline(v=c(mc.mode, mc.mbass, mc.gft), lty=c("dotted","solid","dashed"))
+#' @export
 mc.val <- function(m, method, mbin = 0.1) {
   if (method == "mode") {
     dens <- density(m, from = min(m) - 1, to = max(m) + 1)
@@ -220,6 +222,7 @@ mc.val <- function(m, method, mbin = 0.1) {
 #' theta <- list(kappa = 3 * log(10), beta = 1.2*log(10), mc = 1.5)
 #' m.angular <- efmd.sim(1e3, theta)
 #' beta.mle(m.angular, theta$mc, mbin)
+#' @export
 beta.mle <- function(m, mc, mbin = 0.1) {
   1 / (mean(m[which(m > mc - mbin / 2)]) - (mc - mbin / 2))
 }
@@ -257,6 +260,7 @@ beta.mle <- function(m, mc, mbin = 0.1) {
 #' mdistr <- fmd(m.sim)
 #' plot(mdistr$mi, mdistr$Ni, log = "y")
 #' points(mdistr$mi, mdistr$ni)
+#' @export
 efmd.sim <- function(N, theta, mbin = 0.1) {
   N.complete <- round(N * (theta$kappa - theta$beta) / theta$kappa)
   m.complete <- theta$mc - mbin / 2 + rexp(N.complete, theta$beta)
@@ -299,6 +303,7 @@ efmd.sim <- function(N, theta, mbin = 0.1) {
 #' Bull. Seismol. Soc. Am.,
 #' \href{https://pubs.geoscienceworld.org/ssa/bssa/article-abstract/65/6/1631/117495/on-the-estimation-of-seismic-detection-thresholds}{65, 1631-1642}
 #' @seealso \code{beta.mle}; \code{bfmd.sim}
+#' @export
 bfmd.pdf <- function(m, theta) {
   theta$beta * exp(-theta$beta * (m - theta$mu) -
     0.5 * theta$beta^2 * theta$sigma^2) * pnorm(m, mean = theta$mu, sd = theta$sigma)
@@ -351,6 +356,7 @@ bfmd.pdf <- function(m, theta) {
 #' mdistr <- fmd(m.sim)
 #' plot(mdistr$mi, mdistr$Ni, log = "y")
 #' points(mdistr$mi, mdistr$ni)
+#' @export
 bfmd.sim <- function(N, theta, mbin = 0.1, mmin = 0, mmax = 9) {
   lambda.max <- max(bfmd.pdf(seq(mmin, mmax, mbin), theta))
   lambda.sum <- sum(bfmd.pdf(seq(mmin, mmax, mbin), theta))
