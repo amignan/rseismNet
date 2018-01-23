@@ -189,7 +189,7 @@ mc.geogr <- function(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL
     R <- (dhigh-dlow)/2
     Rmin <- sqrt(2) * dbin / 2 * 111
     R[which(R <= Rmin)] <- Rmin
-    ind.cell <- sapply(1:grid.n, function(i) which(r[,i] <= R))
+    ind.cell <- sapply(1:grid.n, function(i) which(r[,i] <= R[i]))
   }
 
   if(n.bootstrap > 0) {
