@@ -55,11 +55,11 @@ mdistr_angular <- rseismNet::fmd(m_angular)
 plot(mdistr_curved$mi, mdistr_curved$Ni, log = "y", col = "grey", main = "curved FMD")
 points(mdistr_curved$mi, mdistr_curved$ni)
 legend("topright", c("cumulative", "non-cumul."), col = c("grey", "black"), lty = "blank", 
-       pch = 1, cex = 0.5)
+       pch = 1)
 plot(mdistr_angular$mi, mdistr_angular$Ni, log = "y", col = "grey", main = "angular FMD")
 points(mdistr_angular$mi, mdistr_angular$ni)
 legend("topright", c("cumulative", "non-cumul."), col = c("grey", "black"), lty = "blank", 
-       pch = 1, cex = 0.5)
+       pch = 1)
 ```
 
 The first model leads to a curved FMD shape in the log-lin space, while the second one leads to an angular shape. Both models are of the form $n(m) \propto exp(-\beta m)q(m)$, the product of the theoretical Gutenberg-Richter law with slope $\beta = b\log(10)$ (Gutenberg & Richter, 1944) and a detection function $q(m)$, which gives the probability of a given magnitude $m$ being observed. In the first case, $q(m) = \mathcal{N}(\mu,\,\sigma^2)$, the cumulative Normal distribution, and in the second, $q(m < m_c) = exp(\kappa(m-m_c))$, an exponential function with detection parameter $\kappa > \beta$ and $q(m \geq m_c) = 1$. To learn more about the FMD shape ontology and where a given model applies, read Mignan (2012) and Mignan & Chen (2016). For $q(m)$ defined as a Gamma distribution (not yet implemented in rseismNet), see Kijko & Smit (2017).
@@ -72,14 +72,14 @@ mc_mbass_curved <- rseismNet::mc.val(m_curved, "mbass")
 mc_gft_curved <- rseismNet::mc.val(m_curved, "gft")
 plot(mdistr_curved$mi, mdistr_curved$ni, log = "y", main = "mc of a curved FMD")
 abline(v = c(mc_mode_curved, mc_mbass_curved, mc_gft_curved), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
-legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"), cex = 0.5)
+legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
 
 mc_mode_angular <- rseismNet::mc.val(m_angular, "mode")
 mc_mbass_angular <- rseismNet::mc.val(m_angular, "mbass")
 mc_gft_angular <- rseismNet::mc.val(m_angular, "gft")
 plot(mdistr_angular$mi, mdistr_angular$ni, log = "y", main = "mc of an angular FMD")
 abline(v = c(mc_mode_angular, mc_mbass_angular, mc_gft_angular), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
-legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"), cex = 0.5)
+legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
 ```
 
 As of now, three FMD-based $m_c$ estimation methods are available in the `mc.val` function: 
@@ -119,7 +119,7 @@ abline(a = log10(mdistr_curved$ni[which(mdistr_curved$mi >= mc_mbass_curved)[1]]
 abline(a = log10(mdistr_curved$ni[which(mdistr_curved$mi >= mc_gft_curved)[1]]) + 
        beta_gft_curved / log(10) * mc_gft_curved, b = -beta_gft_curved / log(10), 
        col = "brown", lty = "dotdash")
-legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"), cex = 0.5)
+legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
 ```
 
 The methods `mbass` and `gft` may also underestimate $m_c$, depending on the magnitude sample. To avoid this problem, it is recommended to estimate the properties of the $m_c$ estimator by bootstrapping. A conservative approach consists then in using the $m_c$ average plus one to three standard deviations (note that a slight overestimation of $m_c$ is less problematic than its underestimation, although increased undersampling will increase uncertainty on $\beta$):
@@ -145,7 +145,7 @@ beta_var_gft <- sapply(1:length(stddev), function(i) rseismNet::beta.mle(m_curve
 plot(stddev, beta_var_mbass, type = "l", col = "red", ylim = c(log(10) - 1, log(10) + .5), main = "beta-value sensitivity analysis")
 lines(stddev, beta_var_gft, col = "brown")
 abline(h = theta_curved$beta)
-legend("bottomright", c("mbass", "gft"), col = c("red", "brown"), lty = "solid", cex = 0.5)
+legend("bottomright", c("mbass", "gft"), col = c("red", "brown"), lty = "solid")
 ```
 
 It is important to note that there is no "silver bullet"" method to estimate $m_c$. Two recommendations can be given: (1) Always use a visual help to decide whether a method appears reasonable or not (as shown in the various plots above); (2) Keep in mind that the result of a given method depends on the FMD shape, which may change for different data subsets (Mignan, 2012; Mignan & Chen, 2016). For a general review of FMD-based $m_c$ estimation methods, see Mignan and Woessner (2012). For further comparisons of `mbass` and `gft`, see Mignan and Chouliaras (2014).
@@ -345,7 +345,7 @@ Mignan, A., Werner, M.J., Wiemer, S., Chen, C.-C., Wu, Y.-M. (2011), Bayesian Es
 
 Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude distribution and completeness magnitude, J. Geophys. Res., 117, B08302, doi: 10.1029/2012JB009347
 
-Mignan, A., Woessner, J. (2012), Estimating the magnitude of completeness for earthquake catalogs, Community Online Resource for Statistical Seismicity Analysis, doi: 10.5078/corssa-00180805
+Mignan, A., Woessner, J. (2012), Estimating the magnitude of completeness for earthquake catalogs, Community Online Resource for Statistical Seismicity Analysis, doi: 10.5078/corssa-00180805, http://www.corssa.org/export/sites/corssa/.galleries/articles-pdf/Mignan-Woessner-2012-CORSSA-Magnitude-of-completeness.pdf
 
 Mignan, A., Jiang, C., Zechar, J.D., Wiemer, S., Wu, Z., Huang, Z. (2013), Completeness of the Mainland China Earthquake Catalog and Implications for the Setup of the China Earthquake Forecast Texting Center, Bull. Seismol. Soc. Am., 103, 845-859, doi: 10.1785/0120120052
 
