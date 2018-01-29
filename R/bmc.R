@@ -251,10 +251,8 @@ mc.geogr <- function(seism, method, mapping, mbin = 0.1, box = NULL, dbin = NULL
 #'
 #' kth <- 4
 #' params <- bmc.prior.default(kth)
-#' pt.grid <- matrix(c(grid$lon, grid$lat), nrow = grid.n, ncol = 2)
-#' pt.sta <- matrix(c(stations$lon, stations$lat), nrow = sta.n, ncol = 2)
-#' d_m <- sapply(1:grid.n, function(i) geosphere::distHaversine(pt.grid[i, ], pt.sta))
-#' d.kth <- sapply(1:grid.n, function(i) sort(d_m[,i])[kth] * 1e-3)  # in km
+#' d <- sapply(1:grid.n, function(i) rseismNet::d.geogr2km(grid[i,], stations, method = "fast"))
+#' d.kth <- sapply(1:grid.n, function(i) sort(d[,i])[kth])
 #' mc.pred <- (params$c1 * d.kth ^ params$c2 + params$c3)
 #' image(unique(grid$lon), unique(grid$lat),
 #'   matrix(mc.pred, nrow=length(unique(grid$lon)), ncol=length(unique(grid$lat))))
