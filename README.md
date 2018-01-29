@@ -1,11 +1,12 @@
 # rseismNet R Package
 Earthquake Frequency-Magnitude Distribution & Network Statistics
 
-A suite of statistical functions to describe the earthquake frequency
-    magnitude distribution (FMD) statistics. This R package is based on the 2 following 
-    rules: (1) the complete FMD side (m>=mc) is governed by the Gutenberg-Richter law 
-    and depends on the fault network properties; (2) the incomplete FMD part (m<mc) is 
-    governed by a detection function and depends on the seismic network properties 
-    (with m the earthquake magnitude and mc the completeness magnitude). rseismNet also
-    implements the Bayesian Magnitude of Completeness (BMC) method, which uses a seismic
-    network prior to map mc.
+Investigating the properties of the earthquake frequency-magnitude
+    distribution (FMD) is the first necessary step of any seismicity analysis. The
+    R package rseismNet provides a suite of statistical functions to determine the
+    completeness magnitude mc and the seismicity properties below and above this
+    threshold. "Net" refers to network, (1) for the seismic network properties described
+    by the FMD shape below mc, and (2) for the earthquake fault network properties
+    described by the Gutenberg-Richter law above mc. rseismNet also implements the
+    Bayesian Magnitude of Completeness (BMC) method, which maps mc based on a seismic
+    network prior.
