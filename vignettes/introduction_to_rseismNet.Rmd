@@ -2,13 +2,11 @@
 title: "Introduction to rseismNet"
 author: "Arnaud Mignan"
 date: "`r Sys.Date()`"
-output:
-  html_document:
-    keep_md: true
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Introduction to rseismNet}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+  \usepackage[utf8]{inputenc}
 ---
 
 ```{r setup, include = FALSE}
@@ -18,7 +16,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-Investigating the properties of the earthquake frequency-magnitude distribution (FMD) is the first necessary step of any seismicity analysis. The R package rseismNet provides a suite of statistical functions to determine the completeness magnitude $m_c$ and the seismicity properties below and above this threshold. "Net" refers to network, (1) for the seismic network properties described by the FMD shape below $m_c$, and (2) for the earthquake fault network properties described by the Gutenberg-Richter law above $m_c$. rseismNet also implements the Bayesian Magnitude of Completeness (BMC) method, which maps $m_c$ based on a seismic network prior.
+Investigating the properties of the earthquake frequency-magnitude distribution (FMD) is the first necessary step of any seismicity analysis. The R package rseismNet provides a suite of statistical functions to determine the completeness magnitude $m_c$ and the seismicity properties below and above this threshold. "Net" refers to network, (1) for the seismic network properties described by the FMD shape below $m_c$, and (2) for the earthquake fault network properties described by the Gutenberg-Richter law above $m_c$. rseismNet also implements the Bayesian Magnitude of Completeness (BMC) method (Mignan et al., 2011, doi: 10.1785/0120100223), which maps $m_c$ based on a seismic network prior.
 
 What rseismNet does:
 
@@ -54,12 +52,8 @@ mdistr_curved <- rseismNet::fmd(m_curved)
 mdistr_angular <- rseismNet::fmd(m_angular)
 plot(mdistr_curved$mi, mdistr_curved$Ni, log = "y", col = "grey", main = "curved FMD")
 points(mdistr_curved$mi, mdistr_curved$ni)
-legend("topright", c("cumulative", "non-cumul."), col = c("grey", "black"), lty = "blank", 
-       pch = 1)
 plot(mdistr_angular$mi, mdistr_angular$Ni, log = "y", col = "grey", main = "angular FMD")
 points(mdistr_angular$mi, mdistr_angular$ni)
-legend("topright", c("cumulative", "non-cumul."), col = c("grey", "black"), lty = "blank", 
-       pch = 1)
 ```
 
 The first model leads to a curved FMD shape in the log-lin space, while the second one leads to an angular shape. Both models are of the form $n(m) \propto exp(-\beta m)q(m)$, the product of the theoretical Gutenberg-Richter law with slope $\beta = b\log(10)$ (Gutenberg & Richter, 1944) and a detection function $q(m)$, which gives the probability of a given magnitude $m$ being observed. In the first case, $q(m) = \mathcal{N}(\mu,\,\sigma^2)$, the cumulative Normal distribution, and in the second, $q(m < m_c) = exp(\kappa(m-m_c))$, an exponential function with detection parameter $\kappa > \beta$ and $q(m \geq m_c) = 1$. To learn more about the FMD shape ontology and where a given model applies, read Mignan (2012) and Mignan & Chen (2016). For $q(m)$ defined as a Gamma distribution (not yet implemented in rseismNet), see Kijko & Smit (2017).
@@ -72,14 +66,12 @@ mc_mbass_curved <- rseismNet::mc.val(m_curved, "mbass")
 mc_gft_curved <- rseismNet::mc.val(m_curved, "gft")
 plot(mdistr_curved$mi, mdistr_curved$ni, log = "y", main = "mc of a curved FMD")
 abline(v = c(mc_mode_curved, mc_mbass_curved, mc_gft_curved), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
-legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
 
 mc_mode_angular <- rseismNet::mc.val(m_angular, "mode")
 mc_mbass_angular <- rseismNet::mc.val(m_angular, "mbass")
 mc_gft_angular <- rseismNet::mc.val(m_angular, "gft")
 plot(mdistr_angular$mi, mdistr_angular$ni, log = "y", main = "mc of an angular FMD")
 abline(v = c(mc_mode_angular, mc_mbass_angular, mc_gft_angular), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
-legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
 ```
 
 As of now, three FMD-based $m_c$ estimation methods are available in the `mc.val` function: 
@@ -108,7 +100,7 @@ beta_mode_curved <- rseismNet::beta.mle(m_curved, mc_mode_curved)
 beta_mbass_curved <- rseismNet::beta.mle(m_curved, mc_mbass_curved)
 beta_gft_curved <- rseismNet::beta.mle(m_curved, mc_gft_curved)
 c(beta_mode_curved, beta_mbass_curved, beta_gft_curved) / log(10)
-plot(mdistr_curved$mi, mdistr_curved$ni, log = "y", col = "grey", main = "Gutenberg-Richter law fits & biases")
+plot(mdistr_curved$mi, mdistr_curved$ni, log = "y", col = "grey", main = "Gutenberg-Richter law biases")
 abline(v = c(mc_mode_curved, mc_mbass_curved, mc_gft_curved), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
 abline(a = log10(mdistr_curved$ni[which(mdistr_curved$mi >= mc_mode_curved)[1]]) + 
        beta_mode_curved / log(10) * mc_mode_curved, b = -beta_mode_curved / log(10), 
@@ -119,7 +111,6 @@ abline(a = log10(mdistr_curved$ni[which(mdistr_curved$mi >= mc_mbass_curved)[1]]
 abline(a = log10(mdistr_curved$ni[which(mdistr_curved$mi >= mc_gft_curved)[1]]) + 
        beta_gft_curved / log(10) * mc_gft_curved, b = -beta_gft_curved / log(10), 
        col = "brown", lty = "dotdash")
-legend("topright", c("mode", "mbass", "gft"), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
 ```
 
 The methods `mbass` and `gft` may also underestimate $m_c$, depending on the magnitude sample. To avoid this problem, it is recommended to estimate the properties of the $m_c$ estimator by bootstrapping. A conservative approach consists then in using the $m_c$ average plus one to three standard deviations (note that a slight overestimation of $m_c$ is less problematic than its underestimation, although increased undersampling will increase uncertainty on $\beta$):
@@ -142,10 +133,9 @@ beta_var_mbass <- sapply(1:length(stddev), function(i) rseismNet::beta.mle(m_cur
 mci_gft <- round(mean(mc_gft_bootstrap, na.rm = T) + stddev * sd(mc_gft_bootstrap, na.rm = T), digits = 1)
 beta_var_gft <- sapply(1:length(stddev), function(i) rseismNet::beta.mle(m_curved, mci_gft[i]))
 
-plot(stddev, beta_var_mbass, type = "l", col = "red", ylim = c(log(10) - 1, log(10) + .5), main = "beta-value sensitivity analysis")
+plot(stddev, beta_var_mbass, type = "l", col = "red", ylim = c(log(10) - 1, log(10) + .5), main = "beta sensitivity analysis")
 lines(stddev, beta_var_gft, col = "brown")
 abline(h = theta_curved$beta)
-legend("bottomright", c("mbass", "gft"), col = c("red", "brown"), lty = "solid")
 ```
 
 It is important to note that there is no "silver bullet"" method to estimate $m_c$. Two recommendations can be given: (1) Always use a visual help to decide whether a method appears reasonable or not (as shown in the various plots above); (2) Keep in mind that the result of a given method depends on the FMD shape, which may change for different data subsets (Mignan, 2012; Mignan & Chen, 2016). For a general review of FMD-based $m_c$ estimation methods, see Mignan and Woessner (2012). For further comparisons of `mbass` and `gft`, see Mignan and Chouliaras (2014).
@@ -180,10 +170,10 @@ Two mapping methods are available in the function `mc.geogr` that do not involve
 
 ```{r, fig.show='hold'}
 mc.grid <- rseismNet::mc.geogr(seism, "mode", "grid", dbin = 0.1)
-image(matrix(mc.grid$mc.obs, nrow=length(unique(mc.grid$lon)), ncol=length(unique(mc.grid$lat))), main = "high-resolution gridded observed mc map")
+image(matrix(mc.grid$mc.obs, nrow=length(unique(mc.grid$lon)), ncol=length(unique(mc.grid$lat))), main = "high-res gridded obs. mc map")
 
 mc.cst <- rseismNet::mc.geogr(seism, "mbass", "circle.cst", dbin = 0.1, R = 20)
-image(matrix(mc.cst$mc.obs, nrow=length(unique(mc.cst$lon)), ncol=length(unique(mc.cst$lat))), main = "smoothed observed mc map (R = 30km)")
+image(matrix(mc.cst$mc.obs, nrow=length(unique(mc.cst$lon)), ncol=length(unique(mc.cst$lat))), main = "smoothed obs. mc map (R=30km)")
 ```
 
 The `grid` method computes $m_c$ for earthquakes located in each cell of bin size `dbin` (in degrees). It will later be used in the BMC method for high-resolution mapping. The `circle.cst` method computes $m_c$ for earthquakes located in cylinders centered on each cell and with radius $R$ (in km). Note the difference between the two maps (here a low $m_c$ value is represented in red). The `mc.grid` map shows more details than `mc.cst`, as `mc.geogr` only requires 4 events or more per cell when computing $m_c$ with the mode (`nmin = 4` by default). If `mbass` or `gft` is used, `nmin = 50` by default. These thresholds were assessed from sensitivity tests in Mignan et al. (2011). No lower `nmin` value should be used to avoid instabilities. It is recommended to only use the `mode` for high-resolution mapping (`grid` method with low `dbin`) to avoid $m_c$ heterogeneities (increased heterogeneities lead to the FMD shape to change from angular to curved). For high `dbin` or high $R$, `gft` or `mbass` should be used instead (see previous example).
@@ -192,9 +182,9 @@ Let's now see the role of $R$ on $m_c$ mapping:
 
 ```{r, fig.show='hold'}
 mc.R50 <- rseismNet::mc.geogr(seism, "mbass", "circle.cst", dbin = 0.1, R = 50)
-image(matrix(mc.R50$mc.obs, nrow=length(unique(mc.cst$lon)), ncol=length(unique(mc.cst$lat))), main = "smoothed observed mc map (R = 50km)")
+image(matrix(mc.R50$mc.obs, nrow=length(unique(mc.cst$lon)), ncol=length(unique(mc.cst$lat))), main = "smoothed obs. mc map (R=50km)")
 mc.R75 <- rseismNet::mc.geogr(seism, "mbass", "circle.cst", dbin = 0.1, R = 75)
-image(matrix(mc.R75$mc.obs, nrow=length(unique(mc.cst$lon)), ncol=length(unique(mc.cst$lat))), , main = "smoothed observed mc map (R = 75km)")
+image(matrix(mc.R75$mc.obs, nrow=length(unique(mc.cst$lon)), ncol=length(unique(mc.cst$lat))), , main = "smoothed obs. mc map (R=75km)")
 ```
 
 The greater is $R$, the higher is the smoothing of $m_c$. The BMC method avoids this problem while optimizing the number of events used to evalute $m_c$ per cell. It however requires the coordinates of the seismic stations (also available on the SCEDC website).
@@ -212,8 +202,8 @@ stations <- data.frame(lon = sta.lon, lat = sta.lat, name = sta.name)
 stations <- subset(stations, (network == "CI" & sta.off > min(seism$yr) & sta.on < max(seism$yr)))
 stations <- subset(stations, (duplicated(name) == F))
 
-#res <- rseismNet::bmc(seism, stations, dbin = 0.1)   #BMC wrapper
-#image(matrix(res$mc.post, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))), main = "BMC map")
+res <- rseismNet::bmc(seism, stations, dbin = 0.1)   #BMC wrapper
+image(matrix(res$mc.post, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))), main = "BMC map")
 ```
 
 We can see that there is no more gap in the BMC (posterior) $m_c$ map while local features have been kept (i.e. no over-smoothing). Now that we have seen the advantage of the BMC method with the wrapper function `bmc`, let us look in detail at the different BMC steps:
@@ -265,10 +255,9 @@ plot(data$d.kth, data$mc.obs, main = "BMC prior model fitting")
 lines(di, params.cal$c1*di^params.cal$c2+params.cal$c3, col="orange")
 lines(di, params$c1 * di ^ params$c2 + params$c3, col = "red")
 lines(di, params.dat$c1*di^params.dat$c2+params.dat$c3, col="brown")
-legend("bottomright", c("default prior", "calibrated", "from data"), lty = "solid", col = c("red", "orange", "brown"))
 ```
 
-The model calibration consists in shifting the default prior (here in red) along the $m_c$-axis (in orange), correcting $c_3$ by adding the mean residual between observations and default prior. The model obtained directly from the data (in brown) deviates from the calibrated model at large distances only. The simplest option is to use the calibration option. If using a new model parameterization is preferred, additional steps would be required: once the model is defined from a high-resolution $m_c$ map (here in brown, low `dbin` and `mapping = "grid"` in `mc.geogr`), $m_c$ should be remapped with `mapping = "circle.opt"`, and `params` the new prior model parameter list. The model should be refitted to the new $m_c$ dataset which is optimized (see explanation below) and $m_c$ remapped again. This loop should be repeated until the prior model becomes stable (see details on this approach in Mignan et al., 2011). Note that `bmc.prior` also provides the value of the parameter `sigma`, the standard deviation of the residual (below named $\sigma_{prior}$).
+The model calibration consists in shifting the default prior (here in red) along the $m_c$-axis (in orange), correcting $c_3$ by adding the mean residual between observations and default prior. The model obtained directly from the data (in brown) deviates from the calibrated model at large distances only. The simplest option is to use the calibration method. If using a new model parameterization is preferred, additional steps would be required: once the model is defined from a high-resolution $m_c$ map (here in brown, low `dbin` and `mapping = "grid"` in `mc.geogr`), $m_c$ should be remapped with `mapping = "circle.opt"`, and `params` the new prior model parameter list. The model should be refitted to the new $m_c$ dataset which is optimized (see explanation below) and $m_c$ remapped again. This loop should be repeated until the prior model becomes stable (see details on this approach in Mignan et al., 2011). Note that `bmc.prior` also provides the value of the parameter `sigma`, the standard deviation of the residual (below named $\sigma_{prior}$).
 
 For the rest of this section, we will only consider the calibrated prior model for sake of simplicity (this simple approach has already been applied successfully in a number of regions: Switzerland, Mainland China, Greece, California, Iceland: Kraft et al., 2013; Mignan et al., 2013; Mignan and Chouliaras, 2014; Tormann et al., 2014; Panzera et al., 2017 - it is the only approach so far available in the `bmc` wrapper).
 
@@ -282,7 +271,7 @@ This limits the trade-off between undersampling and over-smoothing and minimizes
 
 ```{r, fig.show='hold'}
 mc.opt <- rseismNet::mc.geogr(seism, "mode", "circle.opt", dbin = 0.1, stations = stations, n.bootstrap = 200)
-image(matrix(mc.opt$mc.obs, nrow=length(unique(mc.opt$lon)), ncol=length(unique(mc.opt$lat))), main = "optimized observed mc map")
+image(matrix(mc.opt$mc.obs, nrow=length(unique(mc.opt$lon)), ncol=length(unique(mc.opt$lat))), main = "optimized obs. mc map")
 ```
 
 It is important to indicate the number of bootstraps to compute the standard error associated with $m_c$ observations (below named $\sigma_{obs}$). Note the improvement in $m_c$ mapping compared to the high resolution map (less gaps), and compared to the constant $R$ maps (less over-smoothing). BMC computes $m_c$ using the mode because it is assumed that $m_c$ spatial heterogeneities have been minimized when using `mapping = "circle.opt"` and that the local FMD shape is more angular than curved (this might not always be the case, but can be corrected later on, see below).
@@ -313,13 +302,12 @@ This is done via the function `bmc.bayes`. Be careful, here both `mc.pred` and `
 
 ```{r, fig.show='hold'}
 bmc.res <- rseismNet::bmc.bayes(mc.opt, mc.pred, sigma.pred)
-image(matrix(bmc.res$mc.post, nrow=length(unique(bmc.res$lon)), ncol=length(unique(bmc.res$lat))), main = "posterior mc map (= BMC map)")
+image(matrix(bmc.res$mc.post, nrow=length(unique(bmc.res$lon)), ncol=length(unique(bmc.res$lat))), main = "posterior mc map")
 ```
 
-The $m_c^{post}$ map finally represents the so-called BMC map. Finally, let us quickly have a look at the 3 uncertainty maps (the same color range should be used for proper comparison):
+The $m_c^{post}$ map finally represents the so-called BMC map (here identical to the one directly provided by the BMC wrapper, as we just reproduced steps 1 to 3 of that function). Finally, let us quickly have a look at the 3 uncertainty maps (the same color range should be used for proper comparison):
 
 ```{r, fig.show='hold'}
-par(mfrow=c(1,3))
 image(matrix(bmc.res$sigma.obs, nrow=length(unique(bmc.res$lon)), ncol=length(unique(bmc.res$lat))), main = "observed sigma map")
 image(matrix(bmc.res$sigma.pred, nrow=length(unique(bmc.res$lon)), ncol=length(unique(bmc.res$lat))), main = "predicted sigma map")
 points(stations$lon, stations$lat, pch = 2)
@@ -338,6 +326,8 @@ Amorese, D. (2007), Applying a Change-Point Detecion Method on Frequency-Magnitu
 Gutenberg, B., Richter, C.F. (1944), Frequency of earthquakes in California, Bull. Seismol. Soc. Am., 34, 184-188
 
 Hauksson, E., Yang, W., Shearer, P.M. (2012), Waveform Relocated Earthquake Catalog ofr Southern California (1981 to June 2011), Bull. Seismol. Soc. Am., 102, 2239-2244, doi: 10.1785/0120120010
+
+Kijko, A., Smit, A. (2017), Estimation of the Frequency-Magnitude Gutenberg-Richter b-Value without Making Assumptions on Levels of Completeness, Seismol. Res. Lett., 88, 311-318, doi: 10.1785/0220160177
 
 Kraft, T., Mignan, A., Giardini, D. (2013), Optimization of a large-scale microseismic monitoring network in northern Switzerland, Geophys. J. Int., 195, 474-490, doi: 10.1093/gji/ggt225
 
