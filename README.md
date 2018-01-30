@@ -113,7 +113,7 @@ mc_mode_curved <- rseismNet::mc.val(m_curved, "mode")
 mc_mbass_curved <- rseismNet::mc.val(m_curved, "mbass")
 mc_gft_curved <- rseismNet::mc.val(m_curved, "gft")
 plot(mdistr_curved$mi, mdistr_curved$ni, log = "y", main = "mc of a curved FMD")
-#> Warning in xy.coords(x, y, xlabel, ylabel, log): 1 y value <= 0 omitted
+#> Warning in xy.coords(x, y, xlabel, ylabel, log): 5 y values <= 0 omitted
 #> from logarithmic plot
 abline(v = c(mc_mode_curved, mc_mbass_curved, mc_gft_curved), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
 
@@ -121,7 +121,7 @@ mc_mode_angular <- rseismNet::mc.val(m_angular, "mode")
 mc_mbass_angular <- rseismNet::mc.val(m_angular, "mbass")
 mc_gft_angular <- rseismNet::mc.val(m_angular, "gft")
 plot(mdistr_angular$mi, mdistr_angular$ni, log = "y", main = "mc of an angular FMD")
-#> Warning in xy.coords(x, y, xlabel, ylabel, log): 8 y values <= 0 omitted
+#> Warning in xy.coords(x, y, xlabel, ylabel, log): 14 y values <= 0 omitted
 #> from logarithmic plot
 abline(v = c(mc_mode_angular, mc_mbass_angular, mc_gft_angular), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
 ```
@@ -159,9 +159,9 @@ FMD case (with `theta$mc = 2`), we retrieve a reasonable estimate of the
 ``` r
 beta_mode <- rseismNet::beta.mle(m_angular, mc_mode_angular)
 beta_mode / log(10)
-#> [1] 1.000032
+#> [1] 1.000757
 plot(mdistr_angular$mi, mdistr_angular$ni, log = "y", col = "grey", main = "Gutenberg-Richter law fit")
-#> Warning in xy.coords(x, y, xlabel, ylabel, log): 8 y values <= 0 omitted
+#> Warning in xy.coords(x, y, xlabel, ylabel, log): 14 y values <= 0 omitted
 #> from logarithmic plot
 abline(v = mc_mode_angular, lty = "dotted", col = "red")
 abline(a = log10(mdistr_angular$ni[which(mdistr_angular$mi >= mc_mode_angular)[1]]) + 
@@ -179,9 +179,9 @@ beta_mode_curved <- rseismNet::beta.mle(m_curved, mc_mode_curved)
 beta_mbass_curved <- rseismNet::beta.mle(m_curved, mc_mbass_curved)
 beta_gft_curved <- rseismNet::beta.mle(m_curved, mc_gft_curved)
 c(beta_mode_curved, beta_mbass_curved, beta_gft_curved) / log(10)
-#> [1] 0.7506596 0.7506596 0.9142283
+#> [1] 0.7569779 0.7569779 0.9034823
 plot(mdistr_curved$mi, mdistr_curved$ni, log = "y", col = "grey", main = "Gutenberg-Richter law biases")
-#> Warning in xy.coords(x, y, xlabel, ylabel, log): 1 y value <= 0 omitted
+#> Warning in xy.coords(x, y, xlabel, ylabel, log): 5 y values <= 0 omitted
 #> from logarithmic plot
 abline(v = c(mc_mode_curved, mc_mbass_curved, mc_gft_curved), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
 abline(a = log10(mdistr_curved$ni[which(mdistr_curved$mi >= mc_mode_curved)[1]]) + 
@@ -210,16 +210,16 @@ n_sample <- 100
 mc_mbass_bootstrap <- sapply(1:n_sample, function(i) 
   sample(rseismNet::mc.val(m_curved, "mbass"), replace = T))
 mean(mc_mbass_bootstrap, na.rm = T)
-#> [1] 1.51
+#> [1] 1.47
 sd(mc_mbass_bootstrap, na.rm = T)
-#> [1] 0.5024184
+#> [1] 0.5016136
 
 mc_gft_bootstrap <- sapply(1:n_sample, function(i) 
   sample(rseismNet::mc.val(m_curved, "gft"), replace = T))
 mean(mc_gft_bootstrap, na.rm = T)
-#> [1] 1.68
+#> [1] 1.515
 sd(mc_gft_bootstrap, na.rm = T)
-#> [1] 0.670708
+#> [1] 0.6258863
 
 stddev <- seq(0,3,0.1)
 mci_mbass <- round(mean(mc_mbass_bootstrap, na.rm = T) + stddev * sd(mc_mbass_bootstrap, na.rm = T), digits = 1)
