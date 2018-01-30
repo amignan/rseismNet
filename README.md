@@ -82,7 +82,7 @@ plot(mdistr_angular$mi, mdistr_angular$Ni, log = "y", col = "grey", main = "angu
 points(mdistr_angular$mi, mdistr_angular$ni)
 ```
 
-![](README-unnamed-chunk-3-1.png)![](README-unnamed-chunk-3-2.png)
+![](figs/unnamed-chunk-3-1.png)![](figs/unnamed-chunk-3-2.png)
 
 The first model leads to a curved FMD shape in the log-lin space, while
 the second one leads to an angular shape. Both models are of the form
@@ -113,20 +113,16 @@ mc_mode_curved <- rseismNet::mc.val(m_curved, "mode")
 mc_mbass_curved <- rseismNet::mc.val(m_curved, "mbass")
 mc_gft_curved <- rseismNet::mc.val(m_curved, "gft")
 plot(mdistr_curved$mi, mdistr_curved$ni, log = "y", main = "mc of a curved FMD")
-#> Warning in xy.coords(x, y, xlabel, ylabel, log): 5 y values <= 0 omitted
-#> from logarithmic plot
 abline(v = c(mc_mode_curved, mc_mbass_curved, mc_gft_curved), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
 
 mc_mode_angular <- rseismNet::mc.val(m_angular, "mode")
 mc_mbass_angular <- rseismNet::mc.val(m_angular, "mbass")
 mc_gft_angular <- rseismNet::mc.val(m_angular, "gft")
 plot(mdistr_angular$mi, mdistr_angular$ni, log = "y", main = "mc of an angular FMD")
-#> Warning in xy.coords(x, y, xlabel, ylabel, log): 14 y values <= 0 omitted
-#> from logarithmic plot
 abline(v = c(mc_mode_angular, mc_mbass_angular, mc_gft_angular), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
 ```
 
-![](README-unnamed-chunk-4-1.png)![](README-unnamed-chunk-4-2.png)
+![](figs/unnamed-chunk-4-1.png)![](figs/unnamed-chunk-4-2.png)
 
 As of now, three FMD-based \(m_c\) estimation methods are available in
 the `mc.val` function:
@@ -159,16 +155,14 @@ FMD case (with `theta$mc = 2`), we retrieve a reasonable estimate of the
 ``` r
 beta_mode <- rseismNet::beta.mle(m_angular, mc_mode_angular)
 beta_mode / log(10)
-#> [1] 1.000757
+#> [1] 0.9888971
 plot(mdistr_angular$mi, mdistr_angular$ni, log = "y", col = "grey", main = "Gutenberg-Richter law fit")
-#> Warning in xy.coords(x, y, xlabel, ylabel, log): 14 y values <= 0 omitted
-#> from logarithmic plot
 abline(v = mc_mode_angular, lty = "dotted", col = "red")
 abline(a = log10(mdistr_angular$ni[which(mdistr_angular$mi >= mc_mode_angular)[1]]) + 
        beta_mode / log(10) * mc_mode_angular, b = -beta_mode / log(10), col = "red")
 ```
 
-![](README-unnamed-chunk-5-1.png)<!-- -->
+![](figs/unnamed-chunk-5-1.png)<!-- -->
 
 For a curved FMD however, the methods are likely to yield different
 \(m_c\) estimates. The `mode` systematically underestimates it, leading
@@ -179,10 +173,8 @@ beta_mode_curved <- rseismNet::beta.mle(m_curved, mc_mode_curved)
 beta_mbass_curved <- rseismNet::beta.mle(m_curved, mc_mbass_curved)
 beta_gft_curved <- rseismNet::beta.mle(m_curved, mc_gft_curved)
 c(beta_mode_curved, beta_mbass_curved, beta_gft_curved) / log(10)
-#> [1] 0.7569779 0.7569779 0.9034823
+#> [1] 0.7445667 0.7846371 0.9288369
 plot(mdistr_curved$mi, mdistr_curved$ni, log = "y", col = "grey", main = "Gutenberg-Richter law biases")
-#> Warning in xy.coords(x, y, xlabel, ylabel, log): 5 y values <= 0 omitted
-#> from logarithmic plot
 abline(v = c(mc_mode_curved, mc_mbass_curved, mc_gft_curved), col = c("orange", "red", "brown"), lty = c("solid", "dashed", "dotdash"))
 abline(a = log10(mdistr_curved$ni[which(mdistr_curved$mi >= mc_mode_curved)[1]]) + 
        beta_mode_curved / log(10) * mc_mode_curved, b = -beta_mode_curved / log(10), 
@@ -195,7 +187,7 @@ abline(a = log10(mdistr_curved$ni[which(mdistr_curved$mi >= mc_gft_curved)[1]]) 
        col = "brown", lty = "dotdash")
 ```
 
-![](README-unnamed-chunk-6-1.png)<!-- -->
+![](figs/unnamed-chunk-6-1.png)<!-- -->
 
 The methods `mbass` and `gft` may also underestimate \(m_c\), depending
 on the magnitude sample. To avoid this problem, it is recommended to
@@ -210,16 +202,16 @@ n_sample <- 100
 mc_mbass_bootstrap <- sapply(1:n_sample, function(i) 
   sample(rseismNet::mc.val(m_curved, "mbass"), replace = T))
 mean(mc_mbass_bootstrap, na.rm = T)
-#> [1] 1.47
+#> [1] 1.42
 sd(mc_mbass_bootstrap, na.rm = T)
-#> [1] 0.5016136
+#> [1] 0.496045
 
 mc_gft_bootstrap <- sapply(1:n_sample, function(i) 
   sample(rseismNet::mc.val(m_curved, "gft"), replace = T))
 mean(mc_gft_bootstrap, na.rm = T)
-#> [1] 1.515
+#> [1] 1.645
 sd(mc_gft_bootstrap, na.rm = T)
-#> [1] 0.6258863
+#> [1] 0.679177
 
 stddev <- seq(0,3,0.1)
 mci_mbass <- round(mean(mc_mbass_bootstrap, na.rm = T) + stddev * sd(mc_mbass_bootstrap, na.rm = T), digits = 1)
@@ -232,7 +224,7 @@ lines(stddev, beta_var_gft, col = "brown")
 abline(h = theta_curved$beta)
 ```
 
-![](README-unnamed-chunk-7-1.png)<!-- -->
+![](figs/unnamed-chunk-7-1.png)<!-- -->
 
 It is important to note that there is no “silver bullet”" method to
 estimate \(m_c\). Two recommendations can be given: (1) Always use a
@@ -297,7 +289,7 @@ mc.cst <- rseismNet::mc.geogr(seism, "mbass", "circle.cst", dbin = 0.1, R = 20)
 image(matrix(mc.cst$mc.obs, nrow=length(unique(mc.cst$lon)), ncol=length(unique(mc.cst$lat))), main = "smoothed obs. mc map (R=30km)")
 ```
 
-![](README-unnamed-chunk-9-1.png)![](README-unnamed-chunk-9-2.png)
+![](figs/unnamed-chunk-9-1.png)![](figs/unnamed-chunk-9-2.png)
 
 The `grid` method computes \(m_c\) for earthquakes located in each cell
 of bin size `dbin` (in degrees). It will later be used in the BMC method
@@ -326,7 +318,7 @@ mc.R75 <- rseismNet::mc.geogr(seism, "mbass", "circle.cst", dbin = 0.1, R = 75)
 image(matrix(mc.R75$mc.obs, nrow=length(unique(mc.cst$lon)), ncol=length(unique(mc.cst$lat))), , main = "smoothed obs. mc map (R=75km)")
 ```
 
-![](README-unnamed-chunk-10-1.png)![](README-unnamed-chunk-10-2.png)
+![](figs/unnamed-chunk-10-1.png)![](figs/unnamed-chunk-10-2.png)
 
 The greater is \(R\), the higher is the smoothing of \(m_c\). The BMC
 method avoids this problem while optimizing the number of events used to
@@ -349,9 +341,14 @@ stations <- data.frame(lon = sta.lon, lat = sta.lat, name = sta.name)
 stations <- subset(stations, (network == "CI" & sta.off > min(seism$yr) & sta.on < max(seism$yr)))
 stations <- subset(stations, (duplicated(name) == F))
 
-#res <- rseismNet::bmc(seism, stations, dbin = 0.1)   #BMC wrapper
-#image(matrix(res$mc.post, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))), main = "BMC map")
+res <- rseismNet::bmc(seism, stations, dbin = 0.1)   #BMC wrapper
+#> Compute observed mc map (optimized) 
+#> Compute predicted mc map (calibrated default prior model) 
+#> Compute posterior mc map (combining both observed & predicted mc maps)
+image(matrix(res$mc.post, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))), main = "BMC map")
 ```
+
+![](figs/unnamed-chunk-11-1.png)<!-- -->
 
 We can see that there is no more gap in the BMC (posterior) \(m_c\) map
 while local features have been kept (i.e. no over-smoothing). Now that
@@ -400,7 +397,7 @@ image(unique(grid$lon), unique(grid$lat),
 points(stations_sim, pch = 2)
 ```
 
-![](README-unnamed-chunk-12-1.png)![](README-unnamed-chunk-12-2.png)
+![](figs/unnamed-chunk-12-1.png)![](figs/unnamed-chunk-12-2.png)
 
 The default BMC prior is the model obtained by Mignan et al. (2011) for
 the Taiwanese earthquake catalogue. It remains the default BMC model, as
@@ -432,7 +429,7 @@ lines(di, params$c1 * di ^ params$c2 + params$c3, col = "red")
 lines(di, params.dat$c1*di^params.dat$c2+params.dat$c3, col="brown")
 ```
 
-![](README-unnamed-chunk-13-1.png)<!-- -->
+![](figs/unnamed-chunk-13-1.png)<!-- -->
 
 The model calibration consists in shifting the default prior (here in
 red) along the \(m_c\)-axis (in orange), correcting \(c_3\) by adding
@@ -480,7 +477,7 @@ mc.opt <- rseismNet::mc.geogr(seism, "mode", "circle.opt", dbin = 0.1, stations 
 image(matrix(mc.opt$mc.obs, nrow=length(unique(mc.opt$lon)), ncol=length(unique(mc.opt$lat))), main = "optimized obs. mc map")
 ```
 
-![](README-unnamed-chunk-14-1.png)<!-- -->
+![](figs/unnamed-chunk-14-1.png)<!-- -->
 
 It is important to indicate the number of bootstraps to compute the
 standard error associated with \(m_c\) observations (below named
@@ -507,7 +504,7 @@ sigma.pred <- rep(prior[[1]]$sigma, nrow(mc.opt))
 image(matrix(mc.pred, nrow=length(unique(mc.opt$lon)), ncol=length(unique(mc.opt$lat))), main = "predicted mc map")
 ```
 
-![](README-unnamed-chunk-15-1.png)<!-- -->
+![](figs/unnamed-chunk-15-1.png)<!-- -->
 
 ### Step 3: Posterior \(m_c\) mapping
 
@@ -534,7 +531,7 @@ bmc.res <- rseismNet::bmc.bayes(mc.opt, mc.pred, sigma.pred)
 image(matrix(bmc.res$mc.post, nrow=length(unique(bmc.res$lon)), ncol=length(unique(bmc.res$lat))), main = "posterior mc map")
 ```
 
-![](README-unnamed-chunk-16-1.png)<!-- -->
+![](figs/unnamed-chunk-16-1.png)<!-- -->
 
 The \(m_c^{post}\) map finally represents the so-called BMC map (here
 identical to the one directly provided by the BMC wrapper, as we just
@@ -550,7 +547,7 @@ points(stations$lon, stations$lat, pch = 2)
 image(matrix(bmc.res$sigma.post, nrow=length(unique(bmc.res$lon)), ncol=length(unique(bmc.res$lat))), main = "posterior sigma map")
 ```
 
-![](README-unnamed-chunk-17-1.png)![](README-unnamed-chunk-17-2.png)![](README-unnamed-chunk-17-3.png)
+![](figs/unnamed-chunk-17-1.png)![](figs/unnamed-chunk-17-2.png)![](figs/unnamed-chunk-17-3.png)
 
 Due to \(m_c\) ambiguity, results should always be verified by comparing
 \(\max(m_c^{post})\) in a given spatial area to the matching FMD. If the

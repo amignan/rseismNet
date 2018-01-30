@@ -54,7 +54,7 @@ Let us first generate two earthquake magnitude vectors drawn from two different 
 
 The vector `m_curved` is drawn from the FMD model first proposed by Ringdal (1975) and further developed by Ogata & Katsura (1993; 2006) by using the function `bfmd.sim` ("b" for bulk). The vector `m_angular` is drawn from the FMD model proposed by Mignan (2012) by using the function `efmd.sim` ("e" for elemental). The difference between the two models becomes clear once their FMD (computed with the function `fmd`) is plotted:
 
-```{r, fig.show='hold'}
+```{r, fig.show='hold', fig.path='figs/'}
 mdistr_curved <- rseismNet::fmd(m_curved)
 mdistr_angular <- rseismNet::fmd(m_angular)
 plot(mdistr_curved$mi, mdistr_curved$Ni, log = "y", col = "grey", main = "curved FMD")
@@ -67,7 +67,7 @@ The first model leads to a curved FMD shape in the log-lin space, while the seco
 
 Then the completeness magnitude $m_c$ is defined as the magnitude $m$ at which $q(m)$ tends to 1 (i.e., when all earthquakes are detected). For an angular FMD, $m_c$ is simply the mode of the distribution. For a curved FMD, $m_c$ is ambiguous and represented as $\mu+n\sigma$, but in practice it is approximated as the minimum magnitude above which a straight line is observed in log-lin space (i.e., above which the Gutenberg-Richter law is valid). Let us now evaluate $m_c$ by using three different methods, as defined in the function `mc.val`:
 
-```{r, fig.show='hold'}
+```{r, fig.show='hold', fig.path='figs/' , warning = FALSE}
 mc_mode_curved <- rseismNet::mc.val(m_curved, "mode")
 mc_mbass_curved <- rseismNet::mc.val(m_curved, "mbass")
 mc_gft_curved <- rseismNet::mc.val(m_curved, "gft")
@@ -91,7 +91,7 @@ Both the `mode` and `mbass` methods are non-parametric while `gft` depends on th
 
 Since all methods here give the correct $m_c$ estimate for the angular FMD case (with `theta$mc = 2`), we retrieve a reasonable estimate of the $\beta$-value, with:
 
-```{r, fig.show='hold'}
+```{r, fig.show='hold', fig.path='figs/', warning = FALSE}
 beta_mode <- rseismNet::beta.mle(m_angular, mc_mode_angular)
 beta_mode / log(10)
 plot(mdistr_angular$mi, mdistr_angular$ni, log = "y", col = "grey", main = "Gutenberg-Richter law fit")
@@ -102,7 +102,7 @@ abline(a = log10(mdistr_angular$ni[which(mdistr_angular$mi >= mc_mode_angular)[1
 
 For a curved FMD however, the methods are likely to yield different $m_c$ estimates. The `mode` systematically underestimates it, leading in turn to an incorrect $\beta$-value:
 
-```{r, fig.show='hold'}
+```{r, fig.show='hold', fig.path='figs/', warning = FALSE}
 beta_mode_curved <- rseismNet::beta.mle(m_curved, mc_mode_curved)
 beta_mbass_curved <- rseismNet::beta.mle(m_curved, mc_mbass_curved)
 beta_gft_curved <- rseismNet::beta.mle(m_curved, mc_gft_curved)
@@ -122,7 +122,7 @@ abline(a = log10(mdistr_curved$ni[which(mdistr_curved$mi >= mc_gft_curved)[1]]) 
 
 The methods `mbass` and `gft` may also underestimate $m_c$, depending on the magnitude sample. To avoid this problem, it is recommended to estimate the properties of the $m_c$ estimator by bootstrapping. A conservative approach consists then in using the $m_c$ average plus one to three standard deviations (note that a slight overestimation of $m_c$ is less problematic than its underestimation, although increased undersampling will increase uncertainty on $\beta$):
 
-```{r, fig.show='hold'}
+```{r, fig.show='hold', fig.path='figs/'}
 n_sample <- 100
 mc_mbass_bootstrap <- sapply(1:n_sample, function(i) 
   sample(rseismNet::mc.val(m_curved, "mbass"), replace = T))
@@ -175,7 +175,7 @@ seism <- subset(seism, yr >= 2001)
 
 Two mapping methods are available in the function `mc.geogr` that do not involve the seismic network data. They are `grid` and `circle.cst`:
 
-```{r, fig.show='hold'}
+```{r, fig.show='hold', fig.path='figs/'}
 mc.grid <- rseismNet::mc.geogr(seism, "mode", "grid", dbin = 0.1)
 image(matrix(mc.grid$mc.obs, nrow=length(unique(mc.grid$lon)), ncol=length(unique(mc.grid$lat))), main = "high-res gridded obs. mc map")
 
@@ -187,7 +187,7 @@ The `grid` method computes $m_c$ for earthquakes located in each cell of bin siz
 
 Let's now see the role of $R$ on $m_c$ mapping:
 
-```{r, fig.show='hold'}
+```{r, fig.show='hold', fig.path='figs/'}
 mc.R50 <- rseismNet::mc.geogr(seism, "mbass", "circle.cst", dbin = 0.1, R = 50)
 image(matrix(mc.R50$mc.obs, nrow=length(unique(mc.cst$lon)), ncol=length(unique(mc.cst$lat))), main = "smoothed obs. mc map (R=50km)")
 mc.R75 <- rseismNet::mc.geogr(seism, "mbass", "circle.cst", dbin = 0.1, R = 75)
@@ -196,7 +196,7 @@ image(matrix(mc.R75$mc.obs, nrow=length(unique(mc.cst$lon)), ncol=length(unique(
 
 The greater is $R$, the higher is the smoothing of $m_c$. The BMC method avoids this problem while optimizing the number of events used to evalute $m_c$ per cell. It however requires the coordinates of the seismic stations (also available on the SCEDC website).
 
-```{r, fig.show='hold'}
+```{r, fig.show='hold', fig.path='figs/'}
 url <- "http://service.scedc.caltech.edu/station/weblist.php"
 dat <- scan(url, what = "character", sep = "\n", skip = 7)
 network <- substr(dat, start = 1, stop = 2)
@@ -209,8 +209,8 @@ stations <- data.frame(lon = sta.lon, lat = sta.lat, name = sta.name)
 stations <- subset(stations, (network == "CI" & sta.off > min(seism$yr) & sta.on < max(seism$yr)))
 stations <- subset(stations, (duplicated(name) == F))
 
-#res <- rseismNet::bmc(seism, stations, dbin = 0.1)   #BMC wrapper
-#image(matrix(res$mc.post, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))), main = "BMC map")
+res <- rseismNet::bmc(seism, stations, dbin = 0.1)   #BMC wrapper
+image(matrix(res$mc.post, nrow=length(unique(res$lon)), ncol=length(unique(res$lat))), main = "BMC map")
 ```
 
 We can see that there is no more gap in the BMC (posterior) $m_c$ map while local features have been kept (i.e. no over-smoothing). Now that we have seen the advantage of the BMC method with the wrapper function `bmc`, let us look in detail at the different BMC steps:
@@ -223,7 +223,7 @@ The prior model is defined by the formula $m_c(d_k) = c_1 d_k^{c_2}+c_3$ with $d
 
 Let us first have a look at this default BMC model:
 
-```{r, fig.show='hold'}
+```{r, fig.show='hold', fig.path='figs/'}
 # create a synthetic seismic network
 box <- c(-5, 5, -5, 5); dbin <- 0.1  #degrees
 sta_n <- 30
@@ -251,7 +251,7 @@ The default BMC prior is the model obtained by Mignan et al. (2011) for the Taiw
 
 We will now compare the priors obtained for southern California, when using `support = "calibrated"` or `support = "data"`. Note that if the model cannot be fitted to the data (when using `support = "data"` in the function `bmc.prior`), the default prior is used instead (equivalent to `support = "calibrated"`).
 
-```{r, fig.show='hold'}
+```{r, fig.show='hold', fig.path='figs/'}
 model.calibrated <- rseismNet::bmc.prior(mc.grid, stations, kth = 5)
 model.data <- rseismNet::bmc.prior(mc.grid, stations, kth = 5, support = "data")
 params.cal <- model.calibrated[[1]]
@@ -276,7 +276,7 @@ $R = \frac{1}{2} \big[ \big(\frac{c_1 d_k^{c_2}+\sigma_{prior}}{c_1}\big)^{1/c_2
 
 This limits the trade-off between undersampling and over-smoothing and minimizes $m_c$ heterogeneities in space (see the detailed explanation in Mignan et al., 2011). Since we use the default prior (`params = NULL`), we can simply code:
 
-```{r, fig.show='hold'}
+```{r, fig.show='hold', fig.path='figs/'}
 mc.opt <- rseismNet::mc.geogr(seism, "mode", "circle.opt", dbin = 0.1, stations = stations, n.bootstrap = 200)
 image(matrix(mc.opt$mc.obs, nrow=length(unique(mc.opt$lon)), ncol=length(unique(mc.opt$lat))), main = "optimized obs. mc map")
 ```
@@ -287,7 +287,7 @@ It is important to indicate the number of bootstraps to compute the standard err
 
 The default prior model should then be calibrated to the optimized observations, which will update both $c_3$ and $\sigma_{prior}$. We then compute $m_c^{pred}$ for each cell.
 
-```{r, fig.show='hold'}
+```{r, fig.show='hold', fig.path='figs/'}
 prior <- rseismNet::bmc.prior(mc.opt, stations, kth = kth, support = "calibrated")
 mc.pred <- (prior[[1]]$c1 * prior[[2]]$d.kth ^ prior[[1]]$c2 + prior[[1]]$c3)
 sigma.pred <- rep(prior[[1]]$sigma, nrow(mc.opt))
@@ -307,14 +307,14 @@ $\sigma_{post} = \sqrt{\frac{\sigma_{pred}^2\sigma_{obs}^2}{\sigma_{pred}^2+\sig
 
 This is done via the function `bmc.bayes`. Be careful, here both `mc.pred` and `sigma.pred` must be vectors while `mc.obs` is the data frame resulting from the function `mc.geogr`, which includes $m_c^{obs}$, $\sigma_{obs}$, and the geographic coordinates.
 
-```{r, fig.show='hold'}
+```{r, fig.show='hold', fig.path='figs/'}
 bmc.res <- rseismNet::bmc.bayes(mc.opt, mc.pred, sigma.pred)
 image(matrix(bmc.res$mc.post, nrow=length(unique(bmc.res$lon)), ncol=length(unique(bmc.res$lat))), main = "posterior mc map")
 ```
 
 The $m_c^{post}$ map finally represents the so-called BMC map (here identical to the one directly provided by the BMC wrapper, as we just reproduced steps 1 to 3 of that function). Finally, let us quickly have a look at the 3 uncertainty maps (the same color range should be used for proper comparison):
 
-```{r, fig.show='hold'}
+```{r, fig.show='hold', fig.path='figs/'}
 image(matrix(bmc.res$sigma.obs, nrow=length(unique(bmc.res$lon)), ncol=length(unique(bmc.res$lat))), main = "observed sigma map")
 image(matrix(bmc.res$sigma.pred, nrow=length(unique(bmc.res$lon)), ncol=length(unique(bmc.res$lat))), main = "predicted sigma map")
 points(stations$lon, stations$lat, pch = 2)
