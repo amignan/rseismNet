@@ -10,7 +10,7 @@
 #' network prior to map mc.
 #'
 #' @section rseismNet basic functions:
-#' beta.mle, bfmd.pdf, bfmd.sim, efmd.sim, fmd, mc.val
+#' beta.mle, bfmd.pdf, bfmd.sim, chi.mle, efmd.sim, fmd, mc.val
 #' @section rseismNet mapping functions:
 #' bmc, bmc.bayes, bmc.prior, bmc.prior.default, d.geogr2km, mc.geogr
 #' @references Aki, K. (1965), Maximum likelihood estimate of b in the formula log N =

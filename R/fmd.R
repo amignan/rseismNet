@@ -227,6 +227,35 @@ beta.mle <- function(m, mc, mbin = 0.1) {
   1 / (mean(m[which(m > mc - mbin / 2)]) - (mc - mbin / 2))
 }
 
+#' \eqn{\chi}-value
+#'
+#' Estimate the \eqn{\chi}-value (i.e. slope) of the incomplete part of the
+#' elemental frequency-magnitude distribution with \eqn{\chi} = \eqn{\kappa} - \eqn{\beta},
+#' \eqn{\kappa} representing the earthquake detection parameter (Mignan, 2012).
+#'
+#' \eqn{\chi} is estimated similarly to \eqn{\beta}, by using the maximum likelihood
+#' estimation method (Aki, 1965).
+#'
+#' @param m a numeric vector of earthquake magnitudes
+#' @param mc the completeness magnitude value
+#' @param mbin the magnitude binning value (if not provided, \code{mbin = 0.1})
+#' @return The numeric value of \eqn{\chi}.
+#' @references Aki, K. (1965), Maximum likelihood estimate of b in the formula log N =
+#' a - bM and its confidence limits, Bull. Earthquake Res. Inst. Univ. Tokyo, 43, 237-239
+#' @references Mignan, A. (2012), Functional shape of the earthquake frequency-magnitude
+#' distribution and completeness magnitude, J. Geophys. Res., 117, B08302,
+#' \href{http://onlinelibrary.wiley.com/doi/10.1029/2012JB009347/full}{doi: 10.1029/2012JB009347}
+#' @seealso \code{beta.mle}; \code{efmd.sim}; \code{mc.val}
+#' @examples
+#' theta <- list(kappa = 2 * log(10), beta = log(10), mc = 2)
+#' m.angular <- efmd.sim(1e3, theta)
+#' chi <- chi.mle(m.angular, theta$mc)
+#' chi + theta$beta   # = kappa
+#' @export
+chi.mle <- function(m, mc, mbin = 0.1) {
+  1 / ((mc - mbin / 2) - mean(m[which(m <= mc - mbin / 2)]))
+}
+
 #' Simulation of the Elemental FMD
 #'
 #' Simulate the elemental earthquake frequency magnitude distribution (eFMD) by

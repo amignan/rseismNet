@@ -17,7 +17,7 @@ network prior to map mc.
 }
 \section{rseismNet basic functions}{
 
-beta.mle, bfmd.pdf, bfmd.sim, efmd.sim, fmd, mc.val
+beta.mle, bfmd.pdf, bfmd.sim, chi.mle, efmd.sim, fmd, mc.val
 }
 
 \section{rseismNet mapping functions}{
