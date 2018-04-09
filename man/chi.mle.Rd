@@ -27,9 +27,18 @@ estimation method (Aki, 1965).
 }
 \examples{
 theta <- list(kappa = 2 * log(10), beta = log(10), mc = 2)
-m.angular <- efmd.sim(1e3, theta)
+m.angular <- efmd.sim(1e4, theta)
+mdistr <- fmd(m.angular)
+plot(mdistr$mi, mdistr$Ni, log = "y")
+points(mdistr$mi, mdistr$ni)
 chi <- chi.mle(m.angular, theta$mc)
 chi + theta$beta   # = kappa
+beta <- beta.mle(m.sim, theta$mc)
+abline(v = theta$mc, lty = "dotted", col = "red")
+abline(a = log10(mdistr$ni[which(mdistr$mi >= theta$mc)[1]]) +
+   beta / log(10) * theta$mc, b = -beta / log(10), col = "red")
+abline(a = log10(mdistr$ni[which(mdistr$mi <= theta$mc)[length(which(mdistr$mi <= theta$mc))]]) -
+   chi / log(10) * theta$mc, b = chi / log(10), col = "red")
 }
 \references{
 Aki, K. (1965), Maximum likelihood estimate of b in the formula log N =
