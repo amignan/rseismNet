@@ -2,7 +2,11 @@
 title: "rseismNet"
 author: "Arnaud Mignan"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    keep_md: true
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -126,12 +130,12 @@ The methods `mbass` and `gft` may also underestimate $m_c$, depending on the mag
 ```{r, fig.show='hold', fig.path='figs/'}
 n_sample <- 100
 mc_mbass_bootstrap <- sapply(1:n_sample, function(i) 
-  sample(rseismNet::mc.val(m_curved, "mbass"), replace = T))
+  rseismNet::mc.val(sample(m_curved, replace = T), "mbass"))
 mean(mc_mbass_bootstrap, na.rm = T)
 sd(mc_mbass_bootstrap, na.rm = T)
 
 mc_gft_bootstrap <- sapply(1:n_sample, function(i) 
-  sample(rseismNet::mc.val(m_curved, "gft"), replace = T))
+  rseismNet::mc.val(sample(m_curved, replace = T), "gft"))
 mean(mc_gft_bootstrap, na.rm = T)
 sd(mc_gft_bootstrap, na.rm = T)
 
